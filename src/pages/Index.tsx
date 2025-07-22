@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Home, Car, Sofa, MapPin, Smartphone, Package } from "lucide-react";
-import Header from "@/components/Header";
+import HeaderNew from "@/components/HeaderNew";
 import Hero from "@/components/Hero";
 import CategoryCard from "@/components/CategoryCard";
-import PropertyCard from "@/components/PropertyCard";
+import PropertyCard from "@/components/PropertyCardNew";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-apartment-backup.jpg";
 
 const Index = () => {
@@ -135,9 +137,19 @@ const Index = () => {
     console.log("تم النقر على القسم:", title);
   };
 
+  const [properties, setProperties] = useState([]);
+
+  useEffect(() => {
+    const fetchProperties = async () => {
+      const { data } = await supabase.from('properties').select('*').limit(4);
+      if (data) setProperties(data);
+    };
+    fetchProperties();
+  }, []);
+
   return (
     <div className={`min-h-screen bg-background font-arabic ${isDark ? 'dark' : ''}`} dir="rtl">
-      <Header isDark={isDark} toggleTheme={toggleTheme} />
+      <HeaderNew isDark={isDark} toggleTheme={toggleTheme} />
       
       <main>
         {/* القسم الترويجي */}
@@ -185,23 +197,17 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {featuredProperties.map((property, index) => (
+              {properties.map((property, index) => (
                 <div key={property.id} className="animate-scale-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <PropertyCard
-                    {...property}
-                    onLike={() => handlePropertyLike(property.id)}
-                    onShare={() => handlePropertyShare(property.id)}
-                    onContact={() => handlePropertyContact(property.id)}
-                    onClick={() => handlePropertyClick(property.id)}
-                  />
+                  <PropertyCard property={property} />
                 </div>
               ))}
             </div>
 
             <div className="text-center mt-12">
-              <button className="bg-gradient-primary text-primary-foreground px-8 py-3 rounded-2xl font-semibold hover:shadow-glow transition-all duration-300 font-arabic">
+              <Link to="/properties" className="bg-gradient-primary text-primary-foreground px-8 py-3 rounded-2xl font-semibold hover:shadow-glow transition-all duration-300 font-arabic inline-block">
                 عرض المزيد من العقارات
-              </button>
+              </Link>
             </div>
           </div>
         </section>
