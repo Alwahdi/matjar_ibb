@@ -1,8 +1,25 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, MapPin, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const Hero = () => {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [location, setLocation] = useState("");
+
+  const handleSearch = () => {
+    const searchParams = new URLSearchParams();
+    if (searchTerm) searchParams.set('search', searchTerm);
+    if (location) searchParams.set('location', location);
+    navigate(`/properties?${searchParams.toString()}`);
+  };
+
+  const handleQuickFilter = (filter: string) => {
+    navigate(`/properties?category=${encodeURIComponent(filter)}`);
+  };
+
   return (
     <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden bg-gradient-hero">
       {/* خلفية متحركة */}
@@ -40,6 +57,9 @@ const Hero = () => {
                     placeholder="ابحث عن شقق، أراضي، سيارات..."
                     className="pr-12 h-12 bg-background/50 border-border/50 focus:ring-primary/50 text-right font-arabic"
                     dir="rtl"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   />
                 </div>
               </div>
@@ -51,11 +71,17 @@ const Hero = () => {
                   placeholder="المدينة أو الحي"
                   className="pr-12 h-12 bg-background/50 border-border/50 focus:ring-primary/50 text-right font-arabic"
                   dir="rtl"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />
               </div>
 
               {/* زر البحث */}
-              <Button className="h-12 bg-gradient-primary hover:shadow-glow transition-all duration-300 font-arabic text-lg">
+              <Button 
+                className="h-12 bg-gradient-primary hover:shadow-glow transition-all duration-300 font-arabic text-lg"
+                onClick={handleSearch}
+              >
                 <Search className="w-5 h-5 ml-2" />
                 ابحث
               </Button>
@@ -63,16 +89,17 @@ const Hero = () => {
 
             {/* فلاتر سريعة */}
             <div className="flex flex-wrap justify-center gap-3 mt-6">
-              {['شقق للبيع', 'شقق للإيجار', 'أراضي', 'سيارات', 'أثاث'].map((filter) => (
-                <Button 
-                  key={filter}
-                  variant="outline" 
-                  size="sm"
-                  className="bg-background/50 border-primary/30 hover:bg-primary hover:text-primary-foreground transition-all duration-300 font-arabic"
-                >
-                  {filter}
-                </Button>
-              ))}
+            {['شقق للبيع', 'شقق للإيجار', 'أراضي', 'سيارات', 'أثاث'].map((filter) => (
+              <Button 
+                key={filter}
+                variant="outline" 
+                size="sm"
+                className="bg-background/50 border-primary/30 hover:bg-primary hover:text-primary-foreground transition-all duration-300 font-arabic"
+                onClick={() => handleQuickFilter(filter)}
+              >
+                {filter}
+              </Button>
+            ))}
             </div>
           </div>
 

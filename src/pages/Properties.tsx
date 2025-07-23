@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import PropertyCard from '@/components/PropertyCardNew';
 import { Input } from '@/components/ui/input';
@@ -37,6 +38,7 @@ interface Property {
 }
 
 export default function Properties() {
+  const [searchParams] = useSearchParams();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
@@ -55,8 +57,26 @@ export default function Properties() {
   };
 
   useEffect(() => {
+    // Initialize from URL params
+    const searchParam = searchParams.get('search');
+    const locationParam = searchParams.get('location');
+    const categoryParam = searchParams.get('category');
+    
+    if (searchParam) setSearchTerm(searchParam);
+    if (categoryParam) {
+      // Map category filters to database categories
+      const categoryMap: { [key: string]: string } = {
+        'شقق للبيع': 'real-estate',
+        'شقق للإيجار': 'real-estate',
+        'أراضي': 'real-estate',
+        'سيارات': 'cars',
+        'أثاث': 'furniture'
+      };
+      setSelectedCategory(categoryMap[categoryParam] || categoryParam);
+    }
+    
     fetchProperties();
-  }, []);
+  }, [searchParams]);
 
   const fetchProperties = async () => {
     try {
@@ -83,12 +103,25 @@ export default function Properties() {
   };
 
   const filteredProperties = properties.filter(property => {
-    const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         property.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         property.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         property.neighborhood?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         property.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         property.model?.toLowerCase().includes(searchTerm.toLowerCase());
+    // Search term filter
+    let matchesSearch = true;
+    if (searchTerm) {
+      matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                     property.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                     property.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                     property.neighborhood?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                     property.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                     property.model?.toLowerCase().includes(searchTerm.toLowerCase());
+    }
+    
+    // URL location parameter filter
+    const locationParam = searchParams.get('location');
+    let matchesLocation = true;
+    if (locationParam) {
+      matchesLocation = property.location.toLowerCase().includes(locationParam.toLowerCase()) ||
+                       property.city.toLowerCase().includes(locationParam.toLowerCase()) ||
+                       property.neighborhood?.toLowerCase().includes(locationParam.toLowerCase());
+    }
     
     const matchesCategory = selectedCategory === 'all' || property.category === selectedCategory;
     const matchesCity = selectedCity === 'all' || property.city === selectedCity;
@@ -98,7 +131,7 @@ export default function Properties() {
     const matchesPrice = (!minPrice || property.price >= parseInt(minPrice)) &&
                         (!maxPrice || property.price <= parseInt(maxPrice));
 
-    return matchesSearch && matchesCategory && matchesCity && matchesType && matchesListingType && matchesPrice;
+    return matchesSearch && matchesLocation && matchesCategory && matchesCity && matchesType && matchesListingType && matchesPrice;
   });
 
   // Extract unique values for filters
