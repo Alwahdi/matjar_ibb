@@ -41,7 +41,7 @@ const Header = ({ isDark, toggleTheme }: HeaderProps) => {
                 دلّالتي
               </h1>
               <p className="text-xs text-muted-foreground font-arabic">
-                منصتك الذكية للعقارات
+                منصة التسوق الذكية
               </p>
             </div>
           </Link>
@@ -51,7 +51,7 @@ const Header = ({ isDark, toggleTheme }: HeaderProps) => {
             <div className="relative w-full">
               <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input 
-                placeholder="ابحث عن عقارات..."
+                placeholder="ابحث عن أي شيء..."
                 className="pr-10 bg-background/80 border-border/50 focus:ring-primary/50 font-arabic"
                 dir="rtl"
               />
@@ -66,7 +66,7 @@ const Header = ({ isDark, toggleTheme }: HeaderProps) => {
               className="hidden sm:flex font-arabic hover:bg-accent/50"
               asChild
             >
-              <Link to="/properties">العقارات</Link>
+              <Link to="/properties">جميع العروض</Link>
             </Button>
 
             {/* زر المفضلة */}
@@ -149,7 +149,7 @@ const Header = ({ isDark, toggleTheme }: HeaderProps) => {
           <div className="relative">
             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input 
-              placeholder="ابحث عن عقارات..."
+              placeholder="ابحث عن أي شيء..."
               className="pr-10 bg-background/80 border-border/50 font-arabic"
               dir="rtl"
             />
@@ -161,7 +161,7 @@ const Header = ({ isDark, toggleTheme }: HeaderProps) => {
           <div className="md:hidden mt-4 pb-4 border-t border-border/50 pt-4 animate-fade-in">
             <div className="space-y-2 font-arabic">
               <Button variant="ghost" className="w-full justify-start text-right" asChild>
-                <Link to="/properties">العقارات</Link>
+                <Link to="/properties">جميع العروض</Link>
               </Button>
               {user ? (
                 <>

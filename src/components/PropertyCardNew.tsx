@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, MapPin, MessageCircle, Share2, Eye, Bed, Bath, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ interface PropertyCardProps {
 }
 
 const PropertyCard = ({ property }: PropertyCardProps) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const [isLiked, setIsLiked] = useState(false);
@@ -132,7 +134,10 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
   return (
     <div className="group cursor-pointer bg-gradient-card rounded-2xl overflow-hidden shadow-card hover:shadow-elegant transition-all duration-500 border border-border/30 hover:border-primary/30">
       {/* صورة العقار */}
-      <div className="relative overflow-hidden">
+      <div 
+        className="relative overflow-hidden cursor-pointer"
+        onClick={() => navigate(`/product/${property.id}`)}
+      >
         <div 
           className="w-full h-48 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-700"
           style={{ backgroundImage: `url(${property.images[0] || '/placeholder.svg'})` }}
