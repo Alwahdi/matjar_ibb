@@ -4,14 +4,16 @@ import PropertyCard from '@/components/PropertyCardNew';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, MapPin, DollarSign } from 'lucide-react';
+import { Search, Filter, MapPin, DollarSign, Car, Home, Smartphone, Sofa } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import HeaderNew from '@/components/HeaderNew';
 
 interface Property {
   id: string;
   title: string;
   description: string;
   price: number;
+  category: string;
   property_type: string;
   bedrooms: number;
   bathrooms: number;
@@ -25,18 +27,32 @@ interface Property {
   agent_name: string;
   agent_phone: string;
   agent_email: string;
+  brand?: string;
+  model?: string;
+  year?: number;
+  condition?: string;
+  size?: string;
+  color?: string;
+  material?: string;
 }
 
 export default function Properties() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDark, setIsDark] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedCity, setSelectedCity] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedListingType, setSelectedListingType] = useState('all');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const { toast } = useToast();
+
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+    document.documentElement.classList.toggle('dark');
+  };
 
   useEffect(() => {
     fetchProperties();
@@ -57,7 +73,7 @@ export default function Properties() {
       setProperties(data || []);
     } catch (error: any) {
       toast({
-        title: "خطأ في جلب العقارات",
+        title: "خطأ في جلب العروض",
         description: error.message,
         variant: "destructive"
       });
@@ -68,9 +84,13 @@ export default function Properties() {
 
   const filteredProperties = properties.filter(property => {
     const matchesSearch = property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         property.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          property.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         property.neighborhood?.toLowerCase().includes(searchTerm.toLowerCase());
+                         property.neighborhood?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         property.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         property.model?.toLowerCase().includes(searchTerm.toLowerCase());
     
+    const matchesCategory = selectedCategory === 'all' || property.category === selectedCategory;
     const matchesCity = selectedCity === 'all' || property.city === selectedCity;
     const matchesType = selectedType === 'all' || property.property_type === selectedType;
     const matchesListingType = selectedListingType === 'all' || property.listing_type === selectedListingType;
@@ -78,25 +98,71 @@ export default function Properties() {
     const matchesPrice = (!minPrice || property.price >= parseInt(minPrice)) &&
                         (!maxPrice || property.price <= parseInt(maxPrice));
 
-    return matchesSearch && matchesCity && matchesType && matchesListingType && matchesPrice;
+    return matchesSearch && matchesCategory && matchesCity && matchesType && matchesListingType && matchesPrice;
   });
 
+  // Extract unique values for filters
+  const categories = [...new Set(properties.map(p => p.category))];
   const cities = [...new Set(properties.map(p => p.city))];
   const propertyTypes = [...new Set(properties.map(p => p.property_type))];
 
-  const getPropertyTypeLabel = (type: string) => {
-    const labels = {
-      apartment: 'شقة',
-      villa: 'فيلا',
-      office: 'مكتب',
-      land: 'أرض',
-      commercial: 'تجاري'
+  const getCategoryLabel = (category: string) => {
+    const labels: { [key: string]: string } = {
+      'real-estate': 'عقارات',
+      'cars': 'سيارات',
+      'furniture': 'أثاث',
+      'electronics': 'إلكترونيات',
+      'clothes': 'ملابس',
+      'books': 'كتب',
+      'sports': 'رياضة',
+      'other': 'أخرى'
     };
-    return labels[type as keyof typeof labels] || type;
+    return labels[category] || category;
+  };
+
+  const getCategoryIcon = (category: string) => {
+    const icons: { [key: string]: any } = {
+      'real-estate': Home,
+      'cars': Car,
+      'furniture': Sofa,
+      'electronics': Smartphone,
+    };
+    return icons[category] || Home;
+  };
+
+  const getPropertyTypeLabel = (type: string) => {
+    const labels: { [key: string]: string } = {
+      // Real Estate
+      'apartment': 'شقة',
+      'villa': 'فيلا',
+      'house': 'منزل',
+      'land': 'أرض',
+      'commercial': 'تجاري',
+      // Cars
+      'sedan': 'سيدان',
+      'suv': 'دفع رباعي',
+      'hatchback': 'هاتشباك',
+      'coupe': 'كوبيه',
+      'truck': 'شاحنة',
+      // Furniture
+      'sofa': 'أريكة',
+      'bed': 'سرير',
+      'table': 'طاولة',
+      'chair': 'كرسي',
+      'wardrobe': 'خزانة',
+      // Electronics
+      'smartphone': 'هاتف ذكي',
+      'laptop': 'لابتوب',
+      'tv': 'تلفاز',
+      'tablet': 'تابلت',
+      'camera': 'كاميرا'
+    };
+    return labels[type] || type;
   };
 
   const clearFilters = () => {
     setSearchTerm('');
+    setSelectedCategory('all');
     setSelectedCity('all');
     setSelectedType('all');
     setSelectedListingType('all');
@@ -106,7 +172,8 @@ export default function Properties() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className={`min-h-screen bg-background font-arabic ${isDark ? 'dark' : ''}`} dir="rtl">
+        <HeaderNew isDark={isDark} toggleTheme={toggleTheme} />
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
@@ -123,28 +190,56 @@ export default function Properties() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen bg-background font-arabic ${isDark ? 'dark' : ''}`} dir="rtl">
+      <HeaderNew isDark={isDark} toggleTheme={toggleTheme} />
+      
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-6">جميع العقارات</h1>
+          <h1 className="text-3xl font-bold mb-6 font-arabic">جميع العروض</h1>
+          
+          {/* Category Tabs */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Button
+              variant={selectedCategory === 'all' ? 'default' : 'outline'}
+              onClick={() => setSelectedCategory('all')}
+              className="font-arabic"
+            >
+              جميع الفئات
+            </Button>
+            {categories.map(category => {
+              const Icon = getCategoryIcon(category);
+              return (
+                <Button
+                  key={category}
+                  variant={selectedCategory === category ? 'default' : 'outline'}
+                  onClick={() => setSelectedCategory(category)}
+                  className="font-arabic flex items-center gap-2"
+                >
+                  <Icon className="w-4 h-4" />
+                  {getCategoryLabel(category)}
+                </Button>
+              );
+            })}
+          </div>
           
           {/* Search and Filters */}
           <div className="bg-card rounded-lg p-6 shadow-sm border mb-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               {/* Search */}
               <div className="relative col-span-full lg:col-span-2">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="ابحث عن عقار..."
+                  placeholder="ابحث عن العرض المطلوب..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pr-10 font-arabic"
+                  dir="rtl"
                 />
               </div>
 
               {/* City Filter */}
               <Select value={selectedCity} onValueChange={setSelectedCity}>
-                <SelectTrigger>
+                <SelectTrigger className="font-arabic">
                   <SelectValue placeholder="المدينة" />
                 </SelectTrigger>
                 <SelectContent>
@@ -155,10 +250,10 @@ export default function Properties() {
                 </SelectContent>
               </Select>
 
-              {/* Property Type Filter */}
+              {/* Type Filter */}
               <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="نوع العقار" />
+                <SelectTrigger className="font-arabic">
+                  <SelectValue placeholder="النوع" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">جميع الأنواع</SelectItem>
@@ -172,19 +267,19 @@ export default function Properties() {
 
               {/* Listing Type Filter */}
               <Select value={selectedListingType} onValueChange={setSelectedListingType}>
-                <SelectTrigger>
+                <SelectTrigger className="font-arabic">
                   <SelectValue placeholder="نوع الإعلان" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">جميع الأنواع</SelectItem>
-                  <SelectItem value="sale">للبيع</SelectItem>
-                  <SelectItem value="rent">للإيجار</SelectItem>
+                  <SelectItem value="for_sale">للبيع</SelectItem>
+                  <SelectItem value="for_rent">للإيجار</SelectItem>
                 </SelectContent>
               </Select>
 
               {/* Clear Filters */}
-              <Button variant="outline" onClick={clearFilters} className="w-full">
-                <Filter className="h-4 w-4 mr-2" />
+              <Button variant="outline" onClick={clearFilters} className="w-full font-arabic">
+                <Filter className="h-4 w-4 ml-2" />
                 مسح الفلاتر
               </Button>
             </div>
@@ -198,7 +293,7 @@ export default function Properties() {
                   placeholder="أقل سعر"
                   value={minPrice}
                   onChange={(e) => setMinPrice(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 font-arabic"
                   dir="ltr"
                 />
               </div>
@@ -209,7 +304,7 @@ export default function Properties() {
                   placeholder="أعلى سعر"
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 font-arabic"
                   dir="ltr"
                 />
               </div>
@@ -218,28 +313,40 @@ export default function Properties() {
 
           {/* Results Count */}
           <div className="flex items-center justify-between mb-6">
-            <p className="text-muted-foreground">
-              تم العثور على {filteredProperties.length} عقار
+            <p className="text-muted-foreground font-arabic">
+              تم العثور على {filteredProperties.length} عرض
             </p>
+            {selectedCategory !== 'all' && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground font-arabic">
+                <span>الفئة:</span>
+                <span className="font-semibold">{getCategoryLabel(selectedCategory)}</span>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Properties Grid */}
         {filteredProperties.length === 0 ? (
-          <div className="text-center py-12">
-            <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">لا توجد عقارات</h3>
-            <p className="text-muted-foreground">
-              لم يتم العثور على عقارات تطابق معايير البحث الخاصة بك
+          <div className="text-center py-16">
+            <MapPin className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
+            <h3 className="text-2xl font-semibold mb-4 font-arabic">لا توجد عروض</h3>
+            <p className="text-muted-foreground font-arabic mb-6 max-w-md mx-auto">
+              لم يتم العثور على عروض تطابق معايير البحث الخاصة بك. جرب تعديل الفلاتر أو البحث عن شيء آخر.
             </p>
-            <Button onClick={clearFilters} className="mt-4">
+            <Button onClick={clearFilters} className="font-arabic">
               مسح الفلاتر
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProperties.map((property) => (
-              <PropertyCard key={property.id} property={property} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProperties.map((property, index) => (
+              <div 
+                key={property.id} 
+                className="animate-fade-in" 
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <PropertyCard property={property} />
+              </div>
             ))}
           </div>
         )}

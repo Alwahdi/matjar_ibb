@@ -86,7 +86,11 @@ export type Database = {
           area_sqm: number | null
           bathrooms: number | null
           bedrooms: number | null
+          brand: string | null
+          category: string | null
           city: string
+          color: string | null
+          condition: string | null
           created_at: string
           description: string | null
           id: string
@@ -95,12 +99,16 @@ export type Database = {
           listing_type: string
           location: string
           longitude: number | null
+          material: string | null
+          model: string | null
           neighborhood: string | null
           price: number
           property_type: string
+          size: string | null
           status: string
           title: string
           updated_at: string
+          year: number | null
         }
         Insert: {
           agent_email?: string | null
@@ -111,7 +119,11 @@ export type Database = {
           area_sqm?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
+          brand?: string | null
+          category?: string | null
           city: string
+          color?: string | null
+          condition?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -120,12 +132,16 @@ export type Database = {
           listing_type: string
           location: string
           longitude?: number | null
+          material?: string | null
+          model?: string | null
           neighborhood?: string | null
           price: number
           property_type: string
+          size?: string | null
           status?: string
           title: string
           updated_at?: string
+          year?: number | null
         }
         Update: {
           agent_email?: string | null
@@ -136,7 +152,11 @@ export type Database = {
           area_sqm?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
+          brand?: string | null
+          category?: string | null
           city?: string
+          color?: string | null
+          condition?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -145,12 +165,16 @@ export type Database = {
           listing_type?: string
           location?: string
           longitude?: number | null
+          material?: string | null
+          model?: string | null
           neighborhood?: string | null
           price?: number
           property_type?: string
+          size?: string | null
           status?: string
           title?: string
           updated_at?: string
+          year?: number | null
         }
         Relationships: []
       }
