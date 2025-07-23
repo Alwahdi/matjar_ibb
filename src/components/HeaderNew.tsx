@@ -92,13 +92,13 @@ const Header = ({ isDark, toggleTheme }: HeaderProps) => {
                     </p>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/favorites')}>
                     <Heart className="mr-2 h-4 w-4" />
-                    <span>المفضلة</span>
+                    <span>المفضلات</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/account')}>
                     <User className="mr-2 h-4 w-4" />
-                    <span>الملف الشخصي</span>
+                    <span>إعدادات الحساب</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
@@ -165,11 +165,11 @@ const Header = ({ isDark, toggleTheme }: HeaderProps) => {
               </Button>
               {user ? (
                 <>
-                  <Button variant="ghost" className="w-full justify-start text-right">
-                    المفضلة
+                  <Button variant="ghost" className="w-full justify-start text-right" asChild>
+                    <Link to="/favorites">المفضلات</Link>
                   </Button>
-                  <Button variant="ghost" className="w-full justify-start text-right">
-                    حسابي
+                  <Button variant="ghost" className="w-full justify-start text-right" asChild>
+                    <Link to="/account">إعدادات الحساب</Link>
                   </Button>
                   <Button variant="ghost" className="w-full justify-start text-right" onClick={handleSignOut}>
                     تسجيل الخروج

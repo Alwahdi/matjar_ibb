@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import Onboarding from "@/components/Onboarding";
 import { Home, Car, Sofa, MapPin, Smartphone, Package } from "lucide-react";
 import HeaderNew from "@/components/HeaderNew";
 import Hero from "@/components/Hero";
@@ -9,7 +11,24 @@ import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-apartment-backup.jpg";
 
 const Index = () => {
+  const { user } = useAuth();
   const [isDark, setIsDark] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Show onboarding for new users
+  useEffect(() => {
+    if (user) {
+      const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+      if (!hasSeenOnboarding) {
+        setShowOnboarding(true);
+      }
+    }
+  }, [user]);
+
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('hasSeenOnboarding', 'true');
+    setShowOnboarding(false);
+  };
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -149,6 +168,7 @@ const Index = () => {
 
   return (
     <div className={`min-h-screen bg-background font-arabic ${isDark ? 'dark' : ''}`} dir="rtl">
+      {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
       <HeaderNew isDark={isDark} toggleTheme={toggleTheme} />
       
       <main>
