@@ -29,6 +29,8 @@ import {
   ChevronRight
 } from 'lucide-react';
 import HeaderNew from '@/components/HeaderNew';
+import { useThemeCache, useFavoritesCache } from '@/hooks/useLocalStorage';
+import { useRouteTracking } from '@/hooks/useRouteTracking';
 
 interface Property {
   id: string;
@@ -66,16 +68,22 @@ export default function ProductDetail() {
   const { user } = useAuth();
   const { toast } = useToast();
   
+  // Cache hooks
+  const { isDark, toggleTheme } = useThemeCache();
+  const { cachedFavorites, addToCache, removeFromCache } = useFavoritesCache();
+  useRouteTracking();
+  
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
-  const [isDark, setIsDark] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle('dark');
-  };
+  // Check cached favorites on load
+  useEffect(() => {
+    if (id && cachedFavorites.includes(id)) {
+      setIsLiked(true);
+    }
+  }, [id, cachedFavorites]);
 
   useEffect(() => {
     if (id) {
@@ -141,6 +149,7 @@ export default function ProductDetail() {
           .eq('user_id', user.id)
           .eq('property_id', id);
         
+        if (id) removeFromCache(id);
         setIsLiked(false);
         toast({
           title: "تم الحذف",
@@ -153,6 +162,7 @@ export default function ProductDetail() {
             { user_id: user.id, property_id: id }
           ]);
         
+        if (id) addToCache(id);
         setIsLiked(true);
         toast({
           title: "تم الإضافة",

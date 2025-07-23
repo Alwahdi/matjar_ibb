@@ -6,16 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User, Bell, Shield, Heart, ArrowLeft } from 'lucide-react';
+import { Loader2, User, Bell, Shield, Heart, ArrowLeft, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import HeaderNew from '@/components/HeaderNew';
+import SettingsCache from '@/components/SettingsCache';
 import { Link } from 'react-router-dom';
+import { useThemeCache } from '@/hooks/useLocalStorage';
+import { useRouteTracking } from '@/hooks/useRouteTracking';
 
 export default function AccountSettings() {
   const { user, signOut, loading: authLoading } = useAuth();
   const { toast } = useToast();
+  const { isDark, toggleTheme } = useThemeCache();
+  useRouteTracking();
+  
   const [loading, setLoading] = useState(false);
-  const [isDark, setIsDark] = useState(false);
   
   // Profile data
   const [fullName, setFullName] = useState('');
@@ -28,10 +33,6 @@ export default function AccountSettings() {
     return <Navigate to="/auth" replace />;
   }
 
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle('dark');
-  };
 
   useEffect(() => {
     if (user) {
@@ -143,7 +144,7 @@ export default function AccountSettings() {
           </div>
 
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-8">
+            <TabsList className="grid w-full grid-cols-5 mb-8">
               <TabsTrigger value="profile" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
                 الملف الشخصي
@@ -159,6 +160,10 @@ export default function AccountSettings() {
               <TabsTrigger value="security" className="flex items-center gap-2">
                 <Shield className="w-4 h-4" />
                 الحماية
+              </TabsTrigger>
+              <TabsTrigger value="cache" className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                الإعدادات
               </TabsTrigger>
             </TabsList>
 
@@ -350,6 +355,10 @@ export default function AccountSettings() {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="cache">
+              <SettingsCache />
             </TabsContent>
           </Tabs>
         </div>

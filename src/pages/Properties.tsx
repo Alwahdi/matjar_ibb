@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Search, Filter, MapPin, DollarSign, Car, Home, Smartphone, Sofa } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import HeaderNew from '@/components/HeaderNew';
+import { useThemeCache, useSearchCache, useUserPreferences } from '@/hooks/useLocalStorage';
+import { useRouteTracking } from '@/hooks/useRouteTracking';
 
 interface Property {
   id: string;
@@ -39,22 +41,37 @@ interface Property {
 
 export default function Properties() {
   const [searchParams] = useSearchParams();
+  const { toast } = useToast();
+  
+  // Cache hooks
+  const { isDark, toggleTheme } = useThemeCache();
+  const { searchFilters, saveSearchFilters, addRecentSearch } = useSearchCache();
+  const { preferences } = useUserPreferences();
+  useRouteTracking();
+  
+  // State
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isDark, setIsDark] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedCity, setSelectedCity] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState(searchFilters.category || 'all');
+  const [selectedCity, setSelectedCity] = useState(searchFilters.city || 'all');
   const [selectedType, setSelectedType] = useState('all');
-  const [selectedListingType, setSelectedListingType] = useState('all');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const { toast } = useToast();
+  const [selectedListingType, setSelectedListingType] = useState(searchFilters.listingType || 'all');
+  const [minPrice, setMinPrice] = useState(searchFilters.minPrice || '');
+  const [maxPrice, setMaxPrice] = useState(searchFilters.maxPrice || '');
 
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle('dark');
-  };
+  // Save search filters when they change
+  useEffect(() => {
+    if (preferences.autoSaveSearch) {
+      saveSearchFilters({
+        category: selectedCategory,
+        city: selectedCity,
+        listingType: selectedListingType,
+        minPrice,
+        maxPrice
+      });
+    }
+  }, [selectedCategory, selectedCity, selectedListingType, minPrice, maxPrice, preferences.autoSaveSearch, saveSearchFilters]);
 
   useEffect(() => {
     // Initialize from URL params

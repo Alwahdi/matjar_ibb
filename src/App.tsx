@@ -15,12 +15,15 @@ import AccountSettings from "./pages/AccountSettings";
 import Favorites from "./pages/Favorites";
 import NotFound from "./pages/NotFound";
 
+import CacheManager from "@/components/CacheManager";
+
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
+        <CacheManager />
         <Toaster />
         <Sonner />
         <BrowserRouter>
