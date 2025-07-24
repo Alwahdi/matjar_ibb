@@ -3,12 +3,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { Navigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Heart, ArrowLeft, Search } from 'lucide-react';
+import { Loader2, Heart, ArrowLeft, Search, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import HeaderNew from '@/components/HeaderNew';
 import HeaderMobile from '@/components/HeaderMobile';
 import BottomNavigation from '@/components/BottomNavigation';
 import PropertyCardNew from '@/components/PropertyCardNew';
+import { useFavorites } from '@/hooks/useFavorites';
+import { SwipeToDelete } from '@/components/SwipeToDelete';
 
 interface Property {
   id: string;
@@ -33,9 +35,8 @@ interface Property {
 export default function Favorites() {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(false);
-  const [favorites, setFavorites] = useState<Property[]>([]);
+  const { favorites, loading, removeFromFavorites } = useFavorites();
 
   // Redirect unauthenticated users
   if (!user && !authLoading) {
@@ -47,83 +48,8 @@ export default function Favorites() {
     document.documentElement.classList.toggle('dark');
   };
 
-  useEffect(() => {
-    if (user) {
-      fetchFavorites();
-    }
-  }, [user]);
-
-  const fetchFavorites = async () => {
-    if (!user) return;
-    
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('favorites')
-        .select(`
-          property_id,
-          properties (
-            id,
-            title,
-            description,
-            price,
-            location,
-            city,
-            property_type,
-            listing_type,
-            bedrooms,
-            bathrooms,
-            area_sqm,
-            neighborhood,
-            images,
-            amenities,
-            agent_name,
-            agent_phone,
-            agent_email
-          )
-        `)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      const favoriteProperties = data?.map(item => item.properties).filter(Boolean) as Property[];
-      setFavorites(favoriteProperties || []);
-    } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: "فشل في تحميل المفضلات",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const removeFavorite = async (propertyId: string) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('favorites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('property_id', propertyId);
-
-      if (error) throw error;
-
-      setFavorites(favorites.filter(property => property.id !== propertyId));
-      
-      toast({
-        title: "تم الحذف",
-        description: "تم حذف العرض من المفضلات"
-      });
-    } catch (error: any) {
-      toast({
-        title: "خطأ",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
+  const handleRemoveFavorite = async (propertyId: string) => {
+    await removeFromFavorites(propertyId);
   };
 
   if (authLoading || loading) {
@@ -200,11 +126,26 @@ export default function Favorites() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {favorites.map((property, index) => (
                 <div 
-                  key={property.id} 
-                  className="animate-fade-in" 
+                  key={property.id}
+                  className="animate-fade-in"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <PropertyCardNew property={property} />
+                  <SwipeToDelete
+                    onDelete={() => handleRemoveFavorite(property.id)}
+                    className="w-full"
+                  >
+                    <div className="relative group">
+                      <PropertyCardNew property={property} />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveFavorite(property.id)}
+                        className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-red-500/80 hover:bg-red-600 text-white"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </SwipeToDelete>
                 </div>
               ))}
             </div>

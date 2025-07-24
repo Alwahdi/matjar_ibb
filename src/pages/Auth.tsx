@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Building2 } from 'lucide-react';
+import { Loader2, Phone, Mail, User, Building2 } from 'lucide-react';
 
 export default function Auth() {
   const { user, signIn, signUp, loading: authLoading } = useAuth();
@@ -15,6 +17,7 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
 
   // Redirect authenticated users to home
   if (user && !authLoading) {
@@ -45,20 +48,43 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!phone) {
+      toast({
+        title: "خطأ",
+        description: "رقم الهاتف مطلوب",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
 
-    const { error } = await signUp(email, password, fullName);
-    
-    if (error) {
+    try {
+      // First sign up the user
+      const { error: signUpError } = await signUp(email, password, fullName);
+      
+      if (signUpError) throw signUpError;
+
+      // Update profile with phone number
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ phone })
+        .eq('user_id', user?.id);
+
+      if (profileError) {
+        console.warn('Could not update phone number:', profileError);
+      }
+
+      toast({
+        title: "تم إنشاء الحساب!",
+        description: "يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب"
+      });
+    } catch (error: any) {
       toast({
         title: "خطأ في إنشاء الحساب",
         description: error.message,
         variant: "destructive"
-      });
-    } else {
-      toast({
-        title: "تم إنشاء الحساب!",
-        description: "يرجى التحقق من بريدك الإلكتروني لتفعيل الحساب"
       });
     }
     
@@ -138,9 +164,10 @@ export default function Auth() {
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <label htmlFor="fullName" className="text-sm font-medium">
+                    <Label htmlFor="fullName" className="flex items-center gap-2">
+                      <User className="w-4 h-4" />
                       الاسم الكامل
-                    </label>
+                    </Label>
                     <Input
                       id="fullName"
                       type="text"
@@ -150,10 +177,28 @@ export default function Auth() {
                       placeholder="أدخل اسمك الكامل"
                     />
                   </div>
+                  
                   <div className="space-y-2">
-                    <label htmlFor="email-signup" className="text-sm font-medium">
+                    <Label htmlFor="phone" className="flex items-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      رقم الهاتف
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      required
+                      placeholder="05xxxxxxxx"
+                      dir="ltr"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email-signup" className="flex items-center gap-2">
+                      <Mail className="w-4 h-4" />
                       البريد الإلكتروني
-                    </label>
+                    </Label>
                     <Input
                       id="email-signup"
                       type="email"
@@ -164,10 +209,11 @@ export default function Auth() {
                       dir="ltr"
                     />
                   </div>
+                  
                   <div className="space-y-2">
-                    <label htmlFor="password-signup" className="text-sm font-medium">
+                    <Label htmlFor="password-signup">
                       كلمة المرور
-                    </label>
+                    </Label>
                     <Input
                       id="password-signup"
                       type="password"
