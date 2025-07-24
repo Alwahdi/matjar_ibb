@@ -30,12 +30,6 @@ const BottomNavigation = () => {
       path: "/favorites",
       badge: favorites.length > 0 ? favorites.length : null,
     },
-    {
-      icon: User,
-      label: "حسابي",
-      path: "/account",
-      badge: null,
-    },
   ];
 
   return (
