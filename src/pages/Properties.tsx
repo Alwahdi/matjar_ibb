@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Search, Filter, MapPin, DollarSign, Car, Home, Smartphone, Sofa } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import HeaderNew from '@/components/HeaderNew';
+import HeaderMobile from '@/components/HeaderMobile';
+import BottomNavigation from '@/components/BottomNavigation';
 import { useThemeCache, useSearchCache, useUserPreferences } from '@/hooks/useLocalStorage';
 import { useRouteTracking } from '@/hooks/useRouteTracking';
 
@@ -223,8 +225,15 @@ export default function Properties() {
   if (loading) {
     return (
       <div className={`min-h-screen bg-background font-arabic ${isDark ? 'dark' : ''}`} dir="rtl">
-        <HeaderNew isDark={isDark} toggleTheme={toggleTheme} />
-        <div className="container mx-auto px-4 py-8">
+        {/* Desktop Header */}
+        <div className="hidden md:block">
+          <HeaderNew isDark={isDark} toggleTheme={toggleTheme} />
+        </div>
+        
+        {/* Mobile Header */}
+        <HeaderMobile isDark={isDark} toggleTheme={toggleTheme} />
+        
+        <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse">
@@ -235,15 +244,23 @@ export default function Properties() {
             ))}
           </div>
         </div>
+        
+        <BottomNavigation />
       </div>
     );
   }
 
   return (
     <div className={`min-h-screen bg-background font-arabic ${isDark ? 'dark' : ''}`} dir="rtl">
-      <HeaderNew isDark={isDark} toggleTheme={toggleTheme} />
+      {/* Desktop Header */}
+      <div className="hidden md:block">
+        <HeaderNew isDark={isDark} toggleTheme={toggleTheme} />
+      </div>
       
-      <div className="container mx-auto px-4 py-8">
+      {/* Mobile Header */}
+      <HeaderMobile isDark={isDark} toggleTheme={toggleTheme} />
+      
+      <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-6 font-arabic">جميع العروض</h1>
           
@@ -401,6 +418,9 @@ export default function Properties() {
           </div>
         )}
       </div>
+      
+      {/* Bottom Navigation for Mobile */}
+      <BottomNavigation />
     </div>
   );
 }

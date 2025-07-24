@@ -1,0 +1,85 @@
+import { useState } from "react";
+import { Moon, Sun, Search, Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+interface HeaderMobileProps {
+  isDark: boolean;
+  toggleTheme: () => void;
+  showSearch?: boolean;
+}
+
+const HeaderMobile = ({ isDark, toggleTheme, showSearch = true }: HeaderMobileProps) => {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  return (
+    <header className="sticky top-0 z-40 bg-gradient-card backdrop-blur-md border-b border-border/50 shadow-card md:hidden">
+      <div className="px-4 py-3">
+        <div className="flex items-center justify-between">
+          {/* الشعار */}
+          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+            <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center shadow-glow">
+              <span className="text-lg font-bold text-primary-foreground">د</span>
+            </div>
+            <div className="text-right">
+              <h1 className="text-lg font-bold font-arabic bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+                دلّالتي
+              </h1>
+              <p className="text-xs text-muted-foreground font-arabic leading-none">
+                منصتك الذكية
+              </p>
+            </div>
+          </div>
+
+          {/* الأزرار الجانبية */}
+          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+            {showSearch && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="hover:bg-accent/50 transition-colors"
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+              >
+                <Search className="w-5 h-5" />
+              </Button>
+            )}
+
+            <Button variant="ghost" size="icon" className="hover:bg-accent/50 transition-colors">
+              <Bell className="w-5 h-5" />
+            </Button>
+
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleTheme}
+              className="hover:bg-accent/50 transition-colors"
+            >
+              {isDark ? (
+                <Sun className="w-4 h-4 text-yellow-500" />
+              ) : (
+                <Moon className="w-4 h-4 text-blue-600" />
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* شريط البحث المنزلق */}
+        {isSearchOpen && (
+          <div className="mt-3 animate-fade-in">
+            <div className="relative">
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input 
+                placeholder="ابحث عن شقق، أراضي، سيارات..."
+                className="pr-10 bg-background/80 border-border/50 font-arabic"
+                dir="rtl"
+                autoFocus
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+};
+
+export default HeaderMobile;

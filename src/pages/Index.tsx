@@ -3,6 +3,8 @@ import { useAuth } from "@/hooks/useAuth";
 import Onboarding from "@/components/Onboarding";
 import { Home, Car, Sofa, MapPin, Smartphone, Package } from "lucide-react";
 import HeaderNew from "@/components/HeaderNew";
+import HeaderMobile from "@/components/HeaderMobile";
+import BottomNavigation from "@/components/BottomNavigation";
 import Hero from "@/components/Hero";
 import CategoryCard from "@/components/CategoryCard";
 import PropertyCard from "@/components/PropertyCardNew";
@@ -171,9 +173,16 @@ const Index = () => {
   return (
     <div className={`min-h-screen bg-background font-arabic ${isDark ? 'dark' : ''}`} dir="rtl">
       {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
-      <HeaderNew isDark={isDark} toggleTheme={toggleTheme} />
       
-      <main>
+      {/* Desktop Header */}
+      <div className="hidden md:block">
+        <HeaderNew isDark={isDark} toggleTheme={toggleTheme} />
+      </div>
+      
+      {/* Mobile Header */}
+      <HeaderMobile isDark={isDark} toggleTheme={toggleTheme} />
+      
+      <main className="pb-20 md:pb-0">
         {/* القسم الترويجي */}
         <Hero />
 
@@ -287,6 +296,9 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Bottom Navigation for Mobile */}
+      <BottomNavigation />
     </div>
   );
 };

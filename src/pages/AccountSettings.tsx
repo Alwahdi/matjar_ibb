@@ -9,6 +9,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, User, Bell, Shield, Heart, ArrowLeft, Settings } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import HeaderNew from '@/components/HeaderNew';
+import HeaderMobile from '@/components/HeaderMobile';
+import BottomNavigation from '@/components/BottomNavigation';
 import SettingsCache from '@/components/SettingsCache';
 import { Link } from 'react-router-dom';
 import { useThemeCache } from '@/hooks/useLocalStorage';
@@ -125,9 +127,15 @@ export default function AccountSettings() {
 
   return (
     <div className={`min-h-screen bg-background font-arabic ${isDark ? 'dark' : ''}`} dir="rtl">
-      <HeaderNew isDark={isDark} toggleTheme={toggleTheme} />
+      {/* Desktop Header */}
+      <div className="hidden md:block">
+        <HeaderNew isDark={isDark} toggleTheme={toggleTheme} />
+      </div>
       
-      <main className="container mx-auto px-4 py-8">
+      {/* Mobile Header */}
+      <HeaderMobile isDark={isDark} toggleTheme={toggleTheme} showSearch={false} />
+      
+      <main className="container mx-auto px-4 py-8 pb-20 md:pb-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex items-center mb-8">
@@ -363,6 +371,9 @@ export default function AccountSettings() {
           </Tabs>
         </div>
       </main>
+      
+      {/* Bottom Navigation for Mobile */}
+      <BottomNavigation />
     </div>
   );
 }

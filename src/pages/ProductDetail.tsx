@@ -29,6 +29,8 @@ import {
   ChevronRight
 } from 'lucide-react';
 import HeaderNew from '@/components/HeaderNew';
+import HeaderMobile from '@/components/HeaderMobile';
+import BottomNavigation from '@/components/BottomNavigation';
 import { useThemeCache, useFavoritesCache } from '@/hooks/useLocalStorage';
 import { useRouteTracking } from '@/hooks/useRouteTracking';
 
@@ -267,9 +269,15 @@ export default function ProductDetail() {
 
   return (
     <div className={`min-h-screen bg-background font-arabic ${isDark ? 'dark' : ''}`} dir="rtl">
-      <HeaderNew isDark={isDark} toggleTheme={toggleTheme} />
+      {/* Desktop Header */}
+      <div className="hidden md:block">
+        <HeaderNew isDark={isDark} toggleTheme={toggleTheme} />
+      </div>
       
-      <div className="container mx-auto px-4 py-8">
+      {/* Mobile Header */}
+      <HeaderMobile isDark={isDark} toggleTheme={toggleTheme} showSearch={false} />
+      
+      <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center space-x-2 space-x-reverse text-sm text-muted-foreground mb-6">
           <Link to="/" className="hover:text-foreground">الرئيسية</Link>
@@ -556,6 +564,9 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+      
+      {/* Bottom Navigation for Mobile */}
+      <BottomNavigation />
     </div>
   );
 }
