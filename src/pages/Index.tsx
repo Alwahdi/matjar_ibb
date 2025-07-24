@@ -18,7 +18,7 @@ const Index = () => {
   // Show onboarding for new users
   useEffect(() => {
     if (user) {
-      const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+      const hasSeenOnboarding = localStorage.getItem(`hasSeenOnboarding_${user.id}`);
       if (!hasSeenOnboarding) {
         setShowOnboarding(true);
       }
@@ -26,8 +26,10 @@ const Index = () => {
   }, [user]);
 
   const handleOnboardingComplete = () => {
-    localStorage.setItem('hasSeenOnboarding', 'true');
-    setShowOnboarding(false);
+    if (user) {
+      localStorage.setItem(`hasSeenOnboarding_${user.id}`, 'true');
+      setShowOnboarding(false);
+    }
   };
 
   const toggleTheme = () => {

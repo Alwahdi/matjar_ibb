@@ -1,11 +1,22 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useNavigationCache } from './useLocalStorage';
 
 // Hook to track user's navigation and save current route
 export function useRouteTracking() {
   const location = useLocation();
-  const { saveRoute } = useNavigationCache();
+
+  const saveRoute = useCallback((route: string) => {
+    try {
+      const storedHistory = localStorage.getItem('dalalati-nav-history');
+      const history = storedHistory ? JSON.parse(storedHistory) : [];
+      const newHistory = [route, ...history.filter((r: string) => r !== route)].slice(0, 10);
+      
+      localStorage.setItem('dalalati-last-route', route);
+      localStorage.setItem('dalalati-nav-history', JSON.stringify(newHistory));
+    } catch (error) {
+      console.error('Error saving route:', error);
+    }
+  }, []);
 
   useEffect(() => {
     // Save current route with timestamp
@@ -22,7 +33,7 @@ export function useRouteTracking() {
     } catch (error) {
       console.error('Error saving route:', error);
     }
-  }, [location, saveRoute]);
+  }, [location.pathname, location.search, saveRoute]);
 
   // Function to get last session data
   const getLastSession = () => {

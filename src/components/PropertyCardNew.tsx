@@ -127,8 +127,7 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
   };
 
   const handleClick = () => {
-    // Navigate to property details page
-    window.location.href = `/property/${property.id}`;
+    navigate(`/product/${property.id}`);
   };
 
   return (
@@ -196,7 +195,7 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
       </div>
 
       {/* معلومات العقار */}
-      <div className="p-4" onClick={handleClick}>
+      <div className="p-4 cursor-pointer" onClick={handleClick}>
         {/* العنوان والسعر */}
         <div className="mb-3">
           <h3 className="text-lg font-semibold text-foreground mb-1 font-arabic text-right line-clamp-2 group-hover:text-primary transition-colors duration-300">
