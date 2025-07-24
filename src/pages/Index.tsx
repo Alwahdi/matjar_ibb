@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import Onboarding from "@/components/Onboarding";
 import { Home, Car, Sofa, MapPin, Smartphone, Package } from "lucide-react";
 import HeaderNew from "@/components/HeaderNew";
@@ -14,7 +15,7 @@ import heroImage from "@/assets/hero-apartment-backup.jpg";
 
 const Index = () => {
   const { user } = useAuth();
-  const [isDark, setIsDark] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Show onboarding for new users
@@ -32,11 +33,6 @@ const Index = () => {
       localStorage.setItem(`hasSeenOnboarding_${user.id}`, 'true');
       setShowOnboarding(false);
     }
-  };
-
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle('dark');
   };
 
   // بيانات تجريبية للأقسام

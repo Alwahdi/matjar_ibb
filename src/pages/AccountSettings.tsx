@@ -25,7 +25,10 @@ import {
   Loader2, 
   Upload,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  Settings,
+  Sun,
+  Moon
 } from 'lucide-react';
 import HeaderNew from '@/components/HeaderNew';
 import HeaderMobile from '@/components/HeaderMobile';
@@ -285,7 +288,9 @@ export default function AccountSettings() {
       </div>
       
       {/* Mobile Header */}
-      <HeaderMobile isDark={isDark} toggleTheme={toggleTheme} showSearch={false} />
+      <div className="block md:hidden">
+        <HeaderMobile isDark={isDark} toggleTheme={toggleTheme} showSearch={false} />
+      </div>
       
       <main className="container mx-auto px-4 py-8 pb-20 md:pb-8">
         <div className="max-w-4xl mx-auto">
@@ -301,9 +306,10 @@ export default function AccountSettings() {
           </div>
 
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="profile" className="font-arabic">الملف الشخصي</TabsTrigger>
               <TabsTrigger value="security" className="font-arabic">الأمان</TabsTrigger>
+              <TabsTrigger value="preferences" className="font-arabic">التفضيلات</TabsTrigger>
               <TabsTrigger value="account" className="font-arabic">الحساب</TabsTrigger>
             </TabsList>
 
@@ -480,7 +486,124 @@ export default function AccountSettings() {
               </div>
             </TabsContent>
 
-            {/* Account Tab */}
+            {/* Preferences Tab */}
+            <TabsContent value="preferences">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="font-arabic flex items-center gap-2">
+                    <Settings className="w-5 h-5" />
+                    إعدادات التفضيلات
+                  </CardTitle>
+                  <CardDescription className="font-arabic">
+                    تخصيص تفضيلاتك وإعدادات التطبيق
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Theme Settings */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="font-arabic text-sm font-medium">نمط العرض</Label>
+                        <p className="text-xs text-muted-foreground font-arabic">
+                          اختر النمط المفضل لديك للتطبيق
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-3">
+                      <Button 
+                        variant={!isDark ? "default" : "outline"} 
+                        size="sm" 
+                        onClick={() => {
+                          setIsDark(false);
+                          document.documentElement.classList.remove('dark');
+                          localStorage.setItem('dalalati-theme', 'light');
+                        }}
+                        className="flex flex-col h-auto p-3 font-arabic"
+                      >
+                        <Sun className="w-4 h-4 mb-1" />
+                        فاتح
+                      </Button>
+                      
+                      <Button 
+                        variant={isDark ? "default" : "outline"} 
+                        size="sm" 
+                        onClick={() => {
+                          setIsDark(true);
+                          document.documentElement.classList.add('dark');
+                          localStorage.setItem('dalalati-theme', 'dark');
+                        }}
+                        className="flex flex-col h-auto p-3 font-arabic"
+                      >
+                        <Moon className="w-4 h-4 mb-1" />
+                        مظلم
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => {
+                          const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                          setIsDark(systemPrefersDark);
+                          document.documentElement.classList.toggle('dark', systemPrefersDark);
+                          localStorage.setItem('dalalati-theme', 'system');
+                        }}
+                        className="flex flex-col h-auto p-3 font-arabic"
+                      >
+                        <Globe className="w-4 h-4 mb-1" />
+                        النظام
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Notification Settings */}
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="font-arabic text-sm font-medium">إعدادات الإشعارات</Label>
+                      <p className="text-xs text-muted-foreground font-arabic">
+                        تحكم في كيفية تلقي الإشعارات
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="font-arabic">إشعارات العروض الجديدة</Label>
+                        <input type="checkbox" defaultChecked className="rounded" />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <Label className="font-arabic">إشعارات الرسائل</Label>
+                        <input type="checkbox" defaultChecked className="rounded" />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <Label className="font-arabic">إشعارات التحديثات</Label>
+                        <input type="checkbox" className="rounded" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Language Settings */}
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="font-arabic text-sm font-medium">اللغة</Label>
+                      <p className="text-xs text-muted-foreground font-arabic">
+                        اختر لغة التطبيق المفضلة
+                      </p>
+                    </div>
+                    
+                    <select className="w-full p-2 border rounded-md bg-background font-arabic" dir="rtl">
+                      <option value="ar" selected>العربية</option>
+                      <option value="en">English</option>
+                    </select>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
             <TabsContent value="account">
               <Card>
                 <CardHeader>

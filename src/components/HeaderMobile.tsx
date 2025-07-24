@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { Moon, Sun, Search, Bell } from "lucide-react";
+import { Moon, Sun, Search, Bell, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
+import NotificationCenter from "@/components/NotificationCenter";
+import { useAuth } from "@/hooks/useAuth";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 interface HeaderMobileProps {
   isDark: boolean;
@@ -14,6 +18,12 @@ const HeaderMobile = ({ isDark, toggleTheme, showSearch = true }: HeaderMobilePr
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   return (
     <header className="sticky top-0 z-40 bg-gradient-card backdrop-blur-md border-b border-border/50 shadow-card md:hidden">
@@ -47,10 +57,33 @@ const HeaderMobile = ({ isDark, toggleTheme, showSearch = true }: HeaderMobilePr
               </Button>
             )}
 
-            <Button variant="ghost" size="icon" className="hover:bg-accent/50 transition-colors">
-              <Bell className="w-5 h-5" />
-            </Button>
+            {/* مركز الإشعارات */}
+            <NotificationCenter className="hover:bg-accent/50 transition-colors" />
 
+            {/* أيقونة المستخدم */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="hover:bg-accent/50 transition-colors">
+                  <Avatar className="w-6 h-6">
+                    <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                      {user?.email?.[0].toUpperCase() || 'د'}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48 bg-background/95 backdrop-blur-md border-border/50">
+                <DropdownMenuItem onClick={() => navigate('/account')} className="font-arabic">
+                  <User className="w-4 h-4 ml-2" />
+                  إعدادات الحساب
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="font-arabic text-red-600">
+                  تسجيل الخروج
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* زر تبديل النمط */}
             <Button 
               variant="ghost" 
               size="icon" 
