@@ -167,8 +167,8 @@ export default function ProductDetail() {
         if (id) addToCache(id);
         setIsLiked(true);
         toast({
-          title: "تم الإضافة",
-          description: "تم إضافة العرض للمفضلات"
+          title: "تم الإضافة للمفضلة",
+          description: "تم إضافة العنصر إلى قائمة المفضلات"
         });
       }
     } catch (error: any) {

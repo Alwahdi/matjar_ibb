@@ -91,8 +91,8 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
         if (error) throw error;
         setIsLiked(true);
         toast({
-          title: "تم الإضافة",
-          description: "تم إضافة العقار للمفضلة"
+          title: "تم الإضافة للمفضلة",
+          description: "تم إضافة العنصر إلى قائمة المفضلات"
         });
       }
     } catch (error: any) {

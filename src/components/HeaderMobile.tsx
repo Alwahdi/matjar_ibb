@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Moon, Sun, Search, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 
 interface HeaderMobileProps {
   isDark: boolean;
@@ -11,6 +12,8 @@ interface HeaderMobileProps {
 
 const HeaderMobile = ({ isDark, toggleTheme, showSearch = true }: HeaderMobileProps) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
   return (
     <header className="sticky top-0 z-40 bg-gradient-card backdrop-blur-md border-b border-border/50 shadow-card md:hidden">
@@ -73,6 +76,15 @@ const HeaderMobile = ({ isDark, toggleTheme, showSearch = true }: HeaderMobilePr
                 className="pr-10 bg-background/80 border-border/50 font-arabic"
                 dir="rtl"
                 autoFocus
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim()) {
+                    navigate(`/properties?search=${encodeURIComponent(searchQuery.trim())}`);
+                    setIsSearchOpen(false);
+                    setSearchQuery("");
+                  }
+                }}
               />
             </div>
           </div>

@@ -111,8 +111,8 @@ export const useFavorites = () => {
       setFavoriteIds(prev => new Set([...prev, propertyId]));
       
       toast({
-        title: "✅ تمت الإضافة",
-        description: "تم إضافة العقار إلى المفضلة بنجاح",
+        title: "✅ تمت الإضافة للمفضلة",
+        description: "تم إضافة العنصر إلى قائمة المفضلات بنجاح",
         className: "bg-green-50 border-green-200 text-green-800"
       });
 
