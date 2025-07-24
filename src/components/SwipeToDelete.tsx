@@ -11,19 +11,25 @@ interface SwipeToDeleteProps {
     text: string;
     url: string;
   };
+  deleteConfirmation?: {
+    title?: string;
+    description?: string;
+  };
 }
 
 export function SwipeToDelete({ 
   children, 
   onDelete, 
   className, 
-  threshold = 80,
-  shareData
+  threshold = 60,
+  shareData,
+  deleteConfirmation
 }: SwipeToDeleteProps) {
   return (
     <SwipeActions
       onDelete={onDelete}
       shareData={shareData}
+      deleteConfirmation={deleteConfirmation}
       className={className}
     >
       {children}

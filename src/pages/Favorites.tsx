@@ -133,6 +133,15 @@ export default function Favorites() {
                   <SwipeToDelete
                     onDelete={() => handleRemoveFavorite(property.id)}
                     className="w-full"
+                    shareData={{
+                      title: property.title,
+                      text: `${property.description || ''} - السعر: ${property.price ? new Intl.NumberFormat('ar-SA').format(property.price) : 'غير محدد'} ريال`,
+                      url: `${window.location.origin}/product/${property.id}`
+                    }}
+                    deleteConfirmation={{
+                      title: "إزالة من المفضلة",
+                      description: "هل أنت متأكد من أنك تريد إزالة هذا العقار من قائمة المفضلات؟"
+                    }}
                   >
                     <div className="relative group">
                       <PropertyCardNew property={property} />

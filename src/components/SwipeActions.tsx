@@ -4,6 +4,16 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -21,6 +31,10 @@ interface SwipeActionsProps {
     text: string;
     url: string;
   };
+  deleteConfirmation?: {
+    title?: string;
+    description?: string;
+  };
 }
 
 const SwipeActions: React.FC<SwipeActionsProps> = ({
@@ -28,17 +42,23 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
   onDelete,
   onShare,
   className,
-  shareData
+  shareData,
+  deleteConfirmation = {
+    title: "تأكيد الحذف",
+    description: "هل أنت متأكد من أنك تريد حذف هذا العنصر؟ لا يمكن التراجع عن هذا الإجراء."
+  }
 }) => {
   const [translateX, setTranslateX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [showShareSheet, setShowShareSheet] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const startX = useRef(0);
   const currentX = useRef(0);
+  const animationFrame = useRef<number>();
 
-  const SWIPE_THRESHOLD = 80;
-  const MAX_SWIPE = 120;
+  const SWIPE_THRESHOLD = 60;
+  const MAX_SWIPE = 100;
 
   const shareOptions = [
     {
@@ -47,7 +67,11 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
       action: () => {
         if (shareData?.url) {
           navigator.clipboard.writeText(shareData.url);
-          toast({ title: 'تم نسخ الرابط', description: 'تم نسخ رابط العقار إلى الحافظة' });
+          toast({ 
+            title: '✅ تم النسخ', 
+            description: 'تم نسخ الرابط إلى الحافظة',
+            className: "bg-green-50 border-green-200 text-green-800"
+          });
         }
       }
     },
@@ -73,15 +97,51 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
       }
     },
     {
-      name: 'فتح في متصفح جديد',
+      name: 'مشاركة متقدمة',
       icon: ExternalLink,
-      action: () => {
-        if (shareData?.url) {
-          window.open(shareData.url, '_blank');
+      action: async () => {
+        if (shareData && navigator.share) {
+          try {
+            await navigator.share({
+              title: shareData.title,
+              text: shareData.text,
+              url: shareData.url,
+            });
+          } catch (error) {
+            // Fallback to clipboard
+            if (shareData.url) {
+              navigator.clipboard.writeText(shareData.url);
+              toast({ 
+                title: '✅ تم النسخ', 
+                description: 'تم نسخ الرابط إلى الحافظة',
+                className: "bg-green-50 border-green-200 text-green-800"
+              });
+            }
+          }
+        } else if (shareData?.url) {
+          navigator.clipboard.writeText(shareData.url);
+          toast({ 
+            title: '✅ تم النسخ', 
+            description: 'تم نسخ الرابط إلى الحافظة',
+            className: "bg-green-50 border-green-200 text-green-800"
+          });
         }
       }
     }
   ];
+
+  const updateTransform = (deltaX: number) => {
+    if (animationFrame.current) {
+      cancelAnimationFrame(animationFrame.current);
+    }
+    
+    animationFrame.current = requestAnimationFrame(() => {
+      // Apply smooth resistance and limits
+      const resistance = 0.7;
+      const limitedDeltaX = Math.max(-MAX_SWIPE, Math.min(MAX_SWIPE, deltaX * resistance));
+      setTranslateX(limitedDeltaX);
+    });
+  };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setIsDragging(true);
@@ -91,13 +151,11 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging) return;
+    e.preventDefault();
 
     currentX.current = e.touches[0].clientX;
     const deltaX = currentX.current - startX.current;
-    
-    // Limit swipe distance and apply resistance
-    const limitedDeltaX = Math.max(-MAX_SWIPE, Math.min(MAX_SWIPE, deltaX * 0.8));
-    setTranslateX(limitedDeltaX);
+    updateTransform(deltaX);
   };
 
   const handleTouchEnd = () => {
@@ -108,19 +166,17 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
 
     if (deltaX < -SWIPE_THRESHOLD) {
       // Swipe left - Delete action
-      if (onDelete) {
-        onDelete();
-      }
+      setShowDeleteDialog(true);
     } else if (deltaX > SWIPE_THRESHOLD) {
       // Swipe right - Share action
       if (onShare) {
         onShare();
-      } else {
+      } else if (shareData) {
         setShowShareSheet(true);
       }
     }
 
-    // Reset position
+    // Smooth return to position
     setTranslateX(0);
   };
 
@@ -130,35 +186,9 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
     currentX.current = e.clientX;
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-
-    currentX.current = e.clientX;
-    const deltaX = currentX.current - startX.current;
-    
-    const limitedDeltaX = Math.max(-MAX_SWIPE, Math.min(MAX_SWIPE, deltaX * 0.8));
-    setTranslateX(limitedDeltaX);
-  };
-
-  const handleMouseUp = () => {
-    if (!isDragging) return;
-    setIsDragging(false);
-
-    const deltaX = currentX.current - startX.current;
-
-    if (deltaX < -SWIPE_THRESHOLD) {
-      if (onDelete) {
-        onDelete();
-      }
-    } else if (deltaX > SWIPE_THRESHOLD) {
-      if (onShare) {
-        onShare();
-      } else {
-        setShowShareSheet(true);
-      }
-    }
-
-    setTranslateX(0);
+  const handleDeleteConfirm = () => {
+    setShowDeleteDialog(false);
+    onDelete?.();
   };
 
   useEffect(() => {
@@ -166,8 +196,7 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
       if (isDragging) {
         currentX.current = e.clientX;
         const deltaX = currentX.current - startX.current;
-        const limitedDeltaX = Math.max(-MAX_SWIPE, Math.min(MAX_SWIPE, deltaX * 0.8));
-        setTranslateX(limitedDeltaX);
+        updateTransform(deltaX);
       }
     };
 
@@ -176,12 +205,12 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
         setIsDragging(false);
         const deltaX = currentX.current - startX.current;
 
-        if (deltaX < -SWIPE_THRESHOLD && onDelete) {
-          onDelete();
+        if (deltaX < -SWIPE_THRESHOLD) {
+          setShowDeleteDialog(true);
         } else if (deltaX > SWIPE_THRESHOLD) {
           if (onShare) {
             onShare();
-          } else {
+          } else if (shareData) {
             setShowShareSheet(true);
           }
         }
@@ -198,8 +227,11 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
     return () => {
       document.removeEventListener('mousemove', handleMouseMoveGlobal);
       document.removeEventListener('mouseup', handleMouseUpGlobal);
+      if (animationFrame.current) {
+        cancelAnimationFrame(animationFrame.current);
+      }
     };
-  }, [isDragging, onDelete, onShare]);
+  }, [isDragging, onDelete, onShare, shareData]);
 
   return (
     <>
@@ -209,23 +241,39 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
           {/* Share background (right swipe) */}
           <div 
             className={cn(
-              "flex items-center justify-start pl-4 bg-green-500/20 transition-opacity duration-200",
+              "flex items-center justify-start pl-6 bg-gradient-to-r from-green-500/20 to-green-400/10 transition-all duration-300 ease-out",
               translateX > 0 ? "opacity-100" : "opacity-0"
             )}
             style={{ width: `${Math.max(0, translateX)}px` }}
           >
-            <Share2 className="w-5 h-5 text-green-600" />
+            <Share2 className={cn(
+              "w-5 h-5 text-green-600 transition-all duration-200",
+              translateX > SWIPE_THRESHOLD ? "animate-pulse scale-110" : ""
+            )} />
+            {translateX > SWIPE_THRESHOLD && (
+              <span className="mr-2 text-sm font-arabic text-green-700 font-medium animate-fade-in">
+                مشاركة
+              </span>
+            )}
           </div>
           
           {/* Delete background (left swipe) */}
           <div 
             className={cn(
-              "flex items-center justify-end pr-4 bg-red-500/20 transition-opacity duration-200 ml-auto",
+              "flex items-center justify-end pr-6 bg-gradient-to-l from-red-500/20 to-red-400/10 transition-all duration-300 ease-out ml-auto",
               translateX < 0 ? "opacity-100" : "opacity-0"
             )}
             style={{ width: `${Math.max(0, -translateX)}px` }}
           >
-            <Trash2 className="w-5 h-5 text-red-600" />
+            {translateX < -SWIPE_THRESHOLD && (
+              <span className="ml-2 text-sm font-arabic text-red-700 font-medium animate-fade-in">
+                حذف
+              </span>
+            )}
+            <Trash2 className={cn(
+              "w-5 h-5 text-red-600 transition-all duration-200",
+              translateX < -SWIPE_THRESHOLD ? "animate-pulse scale-110" : ""
+            )} />
           </div>
         </div>
 
@@ -233,7 +281,7 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
         <div
           ref={containerRef}
           className={cn(
-            "relative z-10 transition-transform duration-200 select-none",
+            "relative z-10 transition-transform duration-300 ease-out select-none cursor-grab active:cursor-grabbing",
             isDragging ? "transition-none" : ""
           )}
           style={{ transform: `translateX(${translateX}px)` }}
@@ -241,37 +289,62 @@ const SwipeActions: React.FC<SwipeActionsProps> = ({
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
         >
           {children}
         </div>
       </div>
 
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="bg-background/95 backdrop-blur-md" dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-arabic flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-red-600" />
+              {deleteConfirmation.title}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-arabic">
+              {deleteConfirmation.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row-reverse gap-2">
+            <AlertDialogCancel className="font-arabic">إلغاء</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="font-arabic bg-red-600 hover:bg-red-700"
+            >
+              تأكيد الحذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Share Sheet */}
       <Sheet open={showShareSheet} onOpenChange={setShowShareSheet}>
-        <SheetContent side="bottom" className="h-auto">
+        <SheetContent side="bottom" className="h-auto bg-background/95 backdrop-blur-md">
           <SheetHeader>
-            <SheetTitle className="font-arabic text-right">مشاركة العقار</SheetTitle>
+            <SheetTitle className="font-arabic text-right flex items-center gap-2">
+              <Share2 className="w-5 h-5 text-primary" />
+              مشاركة العنصر
+            </SheetTitle>
             <SheetDescription className="font-arabic text-right">
               اختر طريقة المشاركة المفضلة لديك
             </SheetDescription>
           </SheetHeader>
           
-          <div className="grid grid-cols-2 gap-4 mt-6 pb-6">
+          <div className="grid grid-cols-2 gap-3 mt-6 pb-6">
             {shareOptions.map((option) => {
               const Icon = option.icon;
               return (
                 <Button
                   key={option.name}
                   variant="outline"
-                  className="h-auto p-4 flex flex-col items-center gap-2 font-arabic"
+                  className="h-auto p-4 flex flex-col items-center gap-3 font-arabic hover:bg-accent/50 hover:scale-105 transition-all duration-200"
                   onClick={() => {
                     option.action();
                     setShowShareSheet(false);
                   }}
                 >
-                  <Icon className="w-6 h-6" />
+                  <Icon className="w-6 h-6 text-primary" />
                   <span className="text-sm">{option.name}</span>
                 </Button>
               );

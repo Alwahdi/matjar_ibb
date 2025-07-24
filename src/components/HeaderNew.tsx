@@ -135,20 +135,6 @@ const Header = ({ isDark, toggleTheme }: HeaderProps) => {
               </Button>
             )}
 
-            {/* زر تبديل الوضع - فقط للشاشات الكبيرة */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={toggleTheme}
-              className="hidden lg:flex hover:bg-accent/50 transition-colors"
-            >
-              {isDark ? (
-                <Sun className="w-5 h-5 text-yellow-500" />
-              ) : (
-                <Moon className="w-5 h-5 text-blue-600" />
-              )}
-            </Button>
-
             {/* زر القائمة للموبايل */}
             <Button 
               variant="ghost" 

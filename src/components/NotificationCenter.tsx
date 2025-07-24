@@ -112,6 +112,15 @@ export default function NotificationCenter({ className }: NotificationCenterProp
                   key={notification.id}
                   onDelete={() => deleteNotification(notification.id)}
                   className="w-full"
+                  shareData={{
+                    title: notification.title,
+                    text: notification.message || "",
+                    url: notification.action_url || window.location.href
+                  }}
+                  deleteConfirmation={{
+                    title: "حذف الإشعار",
+                    description: "هل أنت متأكد من أنك تريد حذف هذا الإشعار؟"
+                  }}
                 >
                   <div
                     className={cn(
