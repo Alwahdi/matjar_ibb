@@ -135,12 +135,12 @@ const Header = ({ isDark, toggleTheme }: HeaderProps) => {
               </Button>
             )}
 
-            {/* زر تبديل الوضع - مخفي في الموبايل */}
+            {/* زر تبديل الوضع - فقط للشاشات الكبيرة */}
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={toggleTheme}
-              className="hidden md:flex hover:bg-accent/50 transition-colors"
+              className="hidden lg:flex hover:bg-accent/50 transition-colors"
             >
               {isDark ? (
                 <Sun className="w-5 h-5 text-yellow-500" />
