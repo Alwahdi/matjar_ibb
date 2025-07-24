@@ -111,8 +111,9 @@ export const useFavorites = () => {
       setFavoriteIds(prev => new Set([...prev, propertyId]));
       
       toast({
-        title: "تمت الإضافة",
-        description: "تم إضافة العقار إلى المفضلة",
+        title: "✅ تمت الإضافة",
+        description: "تم إضافة العقار إلى المفضلة بنجاح",
+        className: "bg-green-50 border-green-200 text-green-800"
       });
 
       return true;
@@ -147,8 +148,9 @@ export const useFavorites = () => {
       setFavorites(prev => prev.filter(property => property.id !== propertyId));
       
       toast({
-        title: "تم الحذف",
-        description: "تم حذف العقار من المفضلة"
+        title: "🗑️ تم الحذف",
+        description: "تم حذف العقار من المفضلة",
+        className: "bg-red-50 border-red-200 text-red-800"
       });
 
       return true;

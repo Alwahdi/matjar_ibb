@@ -25,12 +25,6 @@ const BottomNavigation = () => {
       badge: null,
     },
     {
-      icon: Search,
-      label: "البحث",
-      path: "/properties",
-      badge: null,
-    },
-    {
       icon: Heart,
       label: "المفضلة",
       path: "/favorites",
@@ -63,27 +57,30 @@ const BottomNavigation = () => {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "relative flex flex-col items-center justify-center min-w-0 flex-1 py-2 px-1 rounded-lg transition-all duration-200",
+                  "relative flex flex-col items-center justify-center min-w-0 flex-1 py-2 px-1 rounded-lg transition-all duration-300 transform",
                   isActive
-                    ? "text-primary bg-primary/10"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                    ? "text-primary bg-primary/10 scale-105"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50 hover:scale-105"
                 )}
               >
                 <div className="relative">
                   <Icon className={cn(
-                    "w-5 h-5 mb-1 transition-transform duration-200",
-                    isActive && "scale-110"
+                    "w-5 h-5 mb-1 transition-all duration-300",
+                    isActive ? "scale-110 drop-shadow-md" : "hover:scale-105"
                   )} />
                   {item.badge && (
                     <Badge 
                       variant="destructive" 
-                      className="absolute -top-2 -right-2 h-4 w-4 rounded-full p-0 flex items-center justify-center text-xs"
+                      className="absolute -top-2 -right-2 h-4 w-4 rounded-full p-0 flex items-center justify-center text-xs animate-pulse"
                     >
                       {item.badge > 99 ? '99+' : item.badge}
                     </Badge>
                   )}
                 </div>
-                <span className="text-xs font-arabic font-medium text-center leading-tight">
+                <span className={cn(
+                  "text-xs font-arabic font-medium text-center leading-tight transition-all duration-300",
+                  isActive && "font-semibold"
+                )}>
                   {item.label}
                 </span>
               </Link>
