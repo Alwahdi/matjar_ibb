@@ -33,7 +33,7 @@ class EnhancedCache {
       this.cleanup();
     }
 
-    const cacheItem: CacheItem<T> = {
+    const cacheItem: CacheItem<any> = {
       data: finalConfig.compress ? this.compress(data) : data,
       timestamp: Date.now(),
       version: finalConfig.version,
@@ -120,11 +120,11 @@ class EnhancedCache {
 
 export const enhancedCache = new EnhancedCache();
 
-export const useEnhancedCache = <T>(
+export function useEnhancedCache<T>(
   key: string,
   fetcher: () => Promise<T>,
   config?: CacheConfig
-) => {
+) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -178,4 +178,4 @@ export const useEnhancedCache = <T>(
   };
 
   return { data, loading, error, invalidate, refresh };
-};
+}
