@@ -180,7 +180,9 @@ const Index = () => {
       </div>
       
       {/* Mobile Header */}
-      <HeaderMobile isDark={isDark} toggleTheme={toggleTheme} />
+      <div className="block md:hidden">
+        <HeaderMobile isDark={isDark} toggleTheme={toggleTheme} />
+      </div>
       
       <main className="pb-20 md:pb-0">
         {/* القسم الترويجي */}
