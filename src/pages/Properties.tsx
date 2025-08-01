@@ -10,7 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import HeaderNew from '@/components/HeaderNew';
 import HeaderMobile from '@/components/HeaderMobile';
 import BottomNavigation from '@/components/BottomNavigation';
-import { useThemeCache, useSearchCache, useUserPreferences } from '@/hooks/useLocalStorage';
+import { useTheme } from '@/hooks/useTheme';
+import { useSearchCache, useUserPreferences } from '@/hooks/useLocalStorage';
 import { useRouteTracking } from '@/hooks/useRouteTracking';
 
 interface Property {
@@ -46,7 +47,7 @@ export default function Properties() {
   const { toast } = useToast();
   
   // Cache hooks
-  const { isDark, toggleTheme } = useThemeCache();
+  const { isDark, toggleTheme } = useTheme();
   const { searchFilters, saveSearchFilters, addRecentSearch } = useSearchCache();
   const { preferences } = useUserPreferences();
   useRouteTracking();

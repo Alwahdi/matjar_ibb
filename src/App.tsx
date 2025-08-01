@@ -15,6 +15,7 @@ import ProductDetail from "./pages/ProductDetail";
 import AccountSettings from "./pages/AccountSettings";
 import Favorites from "./pages/Favorites";
 import NotFound from "./pages/NotFound";
+import AdminPanel from "./pages/AdminPanel";
 
 import CacheManager from "@/components/CacheManager";
 
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/product/:id" element={<ProtectedRoute><ProductDetail /></ProtectedRoute>} />
             <Route path="/account" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
             <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
+            <Route path="/g1212gg" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

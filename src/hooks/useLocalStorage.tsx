@@ -54,11 +54,19 @@ export function useThemeCache() {
 
 // Hook for navigation cache
 export function useNavigationCache() {
-  const [lastRoute, setLastRoute] = useLocalStorage<string>('dalalati-last-route', '/');
+  // Use direct localStorage access for simple strings to avoid JSON parsing issues
+  const [lastRoute, setLastRoute] = useState<string>(() => {
+    try {
+      return localStorage.getItem('dalalati-last-route') || '/';
+    } catch (error) {
+      return '/';
+    }
+  });
   const [navigationHistory, setNavigationHistory] = useLocalStorage<string[]>('dalalati-nav-history', []);
 
   const saveRoute = (route: string) => {
     setLastRoute(route);
+    localStorage.setItem('dalalati-last-route', route);
     setNavigationHistory(prev => {
       const newHistory = [route, ...prev.filter(r => r !== route)].slice(0, 10); // Keep last 10 routes
       return newHistory;

@@ -31,7 +31,8 @@ import {
 import HeaderNew from '@/components/HeaderNew';
 import HeaderMobile from '@/components/HeaderMobile';
 import BottomNavigation from '@/components/BottomNavigation';
-import { useThemeCache, useFavoritesCache } from '@/hooks/useLocalStorage';
+import { useTheme } from '@/hooks/useTheme';
+import { useFavoritesCache } from '@/hooks/useLocalStorage';
 import { useRouteTracking } from '@/hooks/useRouteTracking';
 
 interface Property {
@@ -71,7 +72,7 @@ export default function ProductDetail() {
   const { toast } = useToast();
   
   // Cache hooks
-  const { isDark, toggleTheme } = useThemeCache();
+  const { isDark, toggleTheme } = useTheme();
   const { cachedFavorites, addToCache, removeFromCache } = useFavoritesCache();
   useRouteTracking();
   

@@ -5,11 +5,11 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { useTheme } from '@/hooks/useTheme';
 import { 
   useUserPreferences, 
   useNavigationCache, 
-  useSearchCache,
-  useThemeCache 
+  useSearchCache
 } from '@/hooks/useLocalStorage';
 import { 
   Trash2, 
@@ -32,7 +32,7 @@ interface SettingsCacheProps {
 
 const SettingsCache = ({ onClose }: SettingsCacheProps) => {
   const { toast } = useToast();
-  const { theme, toggleTheme } = useThemeCache();
+  const { theme, isDark, toggleTheme } = useTheme();
   const { preferences, updatePreference, resetPreferences } = useUserPreferences();
   const { navigationHistory, clearHistory } = useNavigationCache();
   const { recentSearches, clearRecentSearches } = useSearchCache();
@@ -142,7 +142,7 @@ const SettingsCache = ({ onClose }: SettingsCacheProps) => {
               <p className="text-sm text-muted-foreground">تفعيل الوضع الداكن للتطبيق</p>
             </div>
             <Switch
-              checked={theme === 'dark'}
+              checked={isDark}
               onCheckedChange={toggleTheme}
             />
           </div>

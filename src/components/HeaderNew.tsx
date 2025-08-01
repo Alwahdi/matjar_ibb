@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Moon, Sun, Menu, Heart, User, Search, Building2, LogOut, Settings, Bell } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Moon, Sun, Menu, Heart, User, Search, Building2, LogOut, Settings, Bell, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import NotificationCenter from '@/components/NotificationCenter';
+import { supabase } from '@/integrations/supabase/client';
 
 interface HeaderProps {
   isDark: boolean;
@@ -24,6 +25,17 @@ const Header = ({ isDark, toggleTheme }: HeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user) {
+        const { data } = await supabase.rpc('is_admin', { _user_id: user.id });
+        setIsAdmin(!!data);
+      }
+    };
+    checkAdminStatus();
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -117,6 +129,12 @@ const Header = ({ isDark, toggleTheme }: HeaderProps) => {
                     <Heart className="mr-2 h-4 w-4" />
                     <span className="font-arabic">المفضلات</span>
                   </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate('/g1212gg')}>
+                      <Shield className="mr-2 h-4 w-4" />
+                      <span className="font-arabic">لوحة الإدارة</span>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
