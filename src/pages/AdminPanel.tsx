@@ -421,7 +421,7 @@ export default function AdminPanel() {
                 variant="default"
                 className="gap-2"
               >
-                العودة للرئيسية
+                الصفحة الرئيسية
               </Button>
             </div>
           </div>

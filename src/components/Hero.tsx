@@ -6,19 +6,6 @@ import { Input } from "@/components/ui/input";
 
 const Hero = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [location, setLocation] = useState("");
-
-  const handleSearch = () => {
-    const searchParams = new URLSearchParams();
-    if (searchTerm) searchParams.set('search', searchTerm);
-    if (location) searchParams.set('location', location);
-    navigate(`/properties?${searchParams.toString()}`);
-  };
-
-  const handleQuickFilter = (filter: string) => {
-    navigate(`/properties?category=${encodeURIComponent(filter)}`);
-  };
 
   return (
     <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden bg-gradient-hero">
@@ -46,61 +33,21 @@ const Hero = () => {
             </p>
           </div>
 
-          {/* شريط البحث المتقدم */}
-          <div className="bg-card/80 backdrop-blur-lg rounded-3xl p-6 shadow-elegant border border-border/30 max-w-3xl mx-auto animate-scale-in">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {/* البحث */}
-              <div className="md:col-span-2">
-                <div className="relative">
-                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                  <Input 
-                    placeholder="ابحث عن شقق، أراضي، سيارات..."
-                    className="pr-12 h-12 bg-background/50 border-border/50 focus:ring-primary/50 text-right font-arabic"
-                    dir="rtl"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  />
-                </div>
-              </div>
-
-              {/* الموقع */}
-              <div className="relative">
-                <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                <Input 
-                  placeholder="المدينة أو الحي"
-                  className="pr-12 h-12 bg-background/50 border-border/50 focus:ring-primary/50 text-right font-arabic"
-                  dir="rtl"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                />
-              </div>
-
-              {/* زر البحث */}
-              <Button 
-                className="h-12 bg-gradient-primary hover:shadow-glow transition-all duration-300 font-arabic text-lg"
-                onClick={handleSearch}
-              >
-                <Search className="w-5 h-5 ml-2" />
-                ابحث
-              </Button>
-            </div>
-
-            {/* فلاتر سريعة */}
-            <div className="flex flex-wrap justify-center gap-3 mt-6">
-            {['شقق للبيع', 'شقق للإيجار', 'أراضي', 'سيارات', 'أثاث'].map((filter) => (
-              <Button 
-                key={filter}
-                variant="outline" 
-                size="sm"
-                className="bg-background/50 border-primary/30 hover:bg-primary hover:text-primary-foreground transition-all duration-300 font-arabic"
-                onClick={() => handleQuickFilter(filter)}
-              >
-                {filter}
-              </Button>
-            ))}
-            </div>
+          {/* أزرار الإجراءات */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-lg mx-auto animate-scale-in">
+            <Button 
+              onClick={() => navigate('/properties')}
+              className="bg-gradient-primary text-primary-foreground px-8 py-4 rounded-2xl font-semibold hover:shadow-glow transition-all duration-300 font-arabic text-lg w-full sm:w-auto"
+            >
+              استكشف العروض
+            </Button>
+            <Button 
+              onClick={() => navigate('/properties?category=شقق%20للبيع')}
+              variant="outline"
+              className="border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground px-8 py-4 rounded-2xl font-semibold transition-all duration-300 font-arabic text-lg w-full sm:w-auto"
+            >
+              شقق للبيع
+            </Button>
           </div>
 
           {/* إحصائيات سريعة */}

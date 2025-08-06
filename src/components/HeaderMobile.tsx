@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Moon, Sun, Search, Bell, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Moon, Sun, Search, Bell, User, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -7,6 +7,7 @@ import NotificationCenter from "@/components/NotificationCenter";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { supabase } from '@/integrations/supabase/client';
 
 interface HeaderMobileProps {
   isDark: boolean;
@@ -17,8 +18,19 @@ interface HeaderMobileProps {
 const HeaderMobile = ({ isDark, toggleTheme, showSearch = true }: HeaderMobileProps) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user) {
+        const { data } = await supabase.rpc('is_admin', { _user_id: user.id });
+        setIsAdmin(!!data);
+      }
+    };
+    checkAdminStatus();
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -76,6 +88,15 @@ const HeaderMobile = ({ isDark, toggleTheme, showSearch = true }: HeaderMobilePr
                   <User className="w-4 h-4 ml-2" />
                   إعدادات الحساب
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate('/admin')} className="font-arabic text-primary">
+                      <Shield className="w-4 h-4 ml-2" />
+                      لوحة الإدارة
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="font-arabic text-red-600">
                   تسجيل الخروج

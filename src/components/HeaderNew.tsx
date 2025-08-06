@@ -130,9 +130,9 @@ const Header = ({ isDark, toggleTheme }: HeaderProps) => {
                     <span className="font-arabic">المفضلات</span>
                   </DropdownMenuItem>
                   {isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate('/g1212gg')}>
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
                       <Shield className="mr-2 h-4 w-4" />
-                      <span className="font-arabic">لوحة الإدارة</span>
+                      <span className="font-arabic text-primary">لوحة الإدارة</span>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />

@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import Onboarding from "@/components/Onboarding";
-import { Home, Car, Sofa, MapPin, Smartphone, Package } from "lucide-react";
 import HeaderNew from "@/components/HeaderNew";
 import HeaderMobile from "@/components/HeaderMobile";
 import BottomNavigation from "@/components/BottomNavigation";
 import Hero from "@/components/Hero";
-import CategoryCard from "@/components/CategoryCard";
+import ExploreSection from "@/components/ExploreSection";
+import SearchSection from "@/components/SearchSection";
 import PropertyCard from "@/components/PropertyCardNew";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -35,51 +35,6 @@ const Index = () => {
     }
   };
 
-  // بيانات تجريبية للأقسام
-  const categories = [
-    {
-      title: "شقق سكنية",
-      subtitle: "شقق للبيع والإيجار",
-      icon: Home,
-      count: 342,
-      gradient: "bg-gradient-card"
-    },
-    {
-      title: "أراضي",
-      subtitle: "أراضي سكنية وتجارية",
-      icon: MapPin,
-      count: 156,
-      gradient: "bg-gradient-card"
-    },
-    {
-      title: "سيارات",
-      subtitle: "سيارات جديدة ومستعملة",
-      icon: Car,
-      count: 248,
-      gradient: "bg-gradient-card"
-    },
-    {
-      title: "أثاث منزلي",
-      subtitle: "أثاث وديكورات",
-      icon: Sofa,
-      count: 189,
-      gradient: "bg-gradient-card"
-    },
-    {
-      title: "إلكترونيات",
-      subtitle: "جوالات وأجهزة",
-      icon: Smartphone,
-      count: 98,
-      gradient: "bg-gradient-card"
-    },
-    {
-      title: "مستلزمات عامة",
-      subtitle: "مستعمل ومتنوع",
-      icon: Package,
-      count: 167,
-      gradient: "bg-gradient-card"
-    }
-  ];
 
   // بيانات تجريبية للعقارات المميزة
   const featuredProperties = [
@@ -152,9 +107,6 @@ const Index = () => {
     console.log("تم النقر على العقار:", id);
   };
 
-  const handleCategoryClick = (title: string) => {
-    console.log("تم النقر على القسم:", title);
-  };
 
   const [properties, setProperties] = useState([]);
 
@@ -184,34 +136,11 @@ const Index = () => {
         {/* القسم الترويجي */}
         <Hero />
 
-        {/* الأقسام الرئيسية */}
-        <section className="py-16 px-4">
-          <div className="container mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 font-arabic">
-                استكشف جميع الأقسام
-              </h2>
-              <p className="text-muted-foreground text-lg font-arabic">
-                اختر القسم المناسب لك واستكشف أفضل العروض المتاحة
-              </p>
-            </div>
+        {/* الأقسام الرئيسية - نقل للأعلى */}
+        <ExploreSection />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categories.map((category, index) => (
-                <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <CategoryCard
-                    title={category.title}
-                    subtitle={category.subtitle}
-                    icon={category.icon}
-                    count={category.count}
-                    gradient={category.gradient}
-                    onClick={() => handleCategoryClick(category.title)}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* البحث المتقدم - نقل للأسفل */}
+        <SearchSection />
 
         {/* العروض المميزة */}
         <section className="py-16 px-4 bg-muted/30">
