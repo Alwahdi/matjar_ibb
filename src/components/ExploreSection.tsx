@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Home, Car, Sofa, MapPin, Smartphone, Package, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-
+import { supabase } from "@/integrations/supabase/client";
 interface CategoryOption {
   id: string;
   title: string;
@@ -23,7 +23,7 @@ interface Category {
 const ExploreSection = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
+  const [dynamicCounts, setDynamicCounts] = useState<Record<string, number>>({});
   const categories: Category[] = [
     {
       title: "شقق سكنية",
@@ -84,6 +84,42 @@ const ExploreSection = () => {
     }
   ];
 
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const filters: Record<string, { category?: string; property_type?: string }> = {
+          'شقق سكنية': { category: 'real-estate' },
+          'أراضي': { property_type: 'land' },
+          'سيارات': { category: 'cars' },
+          'أثاث منزلي': { category: 'furniture' },
+          'إلكترونيات': { category: 'electronics' },
+          'مستلزمات عامة': { category: 'general' },
+        };
+
+        const entries = Object.entries(filters);
+        const results = await Promise.all(entries.map(async ([title, f]) => {
+          let query = supabase
+            .from('properties')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'active');
+          if (f.category) query = query.eq('category', f.category);
+          if (f.property_type) query = query.eq('property_type', f.property_type);
+          const { count } = await query;
+          return [title, count || 0] as const;
+        }));
+
+        const mapped: Record<string, number> = {};
+        results.forEach(([title, count]) => {
+          mapped[title] = count;
+        });
+        setDynamicCounts(mapped);
+      } catch (e) {
+        console.error('Failed to load category counts', e);
+      }
+    };
+    fetchCounts();
+  }, []);
+
   const handleCategoryClick = (category: Category) => {
     if (category.options) {
       setSelectedCategory(selectedCategory === category.title ? null : category.title);
@@ -141,7 +177,7 @@ const ExploreSection = () => {
                       <div className="flex items-center gap-2">
                         <div className="text-right">
                           <div className="text-2xl font-bold text-primary font-arabic">
-                            {category.count}
+                            {dynamicCounts[category.title] ?? category.count}
                           </div>
                           <div className="text-xs text-muted-foreground font-arabic">
                             عرض متاح

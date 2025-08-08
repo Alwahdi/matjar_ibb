@@ -112,7 +112,12 @@ const Index = () => {
 
   useEffect(() => {
     const fetchProperties = async () => {
-      const { data } = await supabase.from('properties').select('*').limit(4);
+      const { data } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(4);
       if (data) setProperties(data);
     };
     fetchProperties();
@@ -133,13 +138,13 @@ const Index = () => {
       </div>
       
       <main className="pb-20 md:pb-0">
+        {/* الأقسام الرئيسية - أول قسم في الصفحة */}
+        <ExploreSection />
+
         {/* القسم الترويجي */}
         <Hero />
 
-        {/* الأقسام الرئيسية - نقل للأعلى */}
-        <ExploreSection />
-
-        {/* البحث المتقدم - نقل للأسفل */}
+        {/* البحث المتقدم */}
         <SearchSection />
 
         {/* العروض المميزة */}
