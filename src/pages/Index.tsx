@@ -179,7 +179,7 @@ const Index = () => {
         <section className="py-16 px-4 bg-gradient-hero">
           <div className="container mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-12 font-arabic">
-              لماذا تختار دلّالتي؟
+              لماذا تختار متجر أب الشامل؟
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -216,15 +216,15 @@ const Index = () => {
         <div className="container mx-auto text-center">
           <div className="mb-8">
             <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent font-arabic">
-              دلّالتي
+              متجر أب الشامل
             </h3>
             <p className="text-muted-foreground mt-2 font-arabic">
-              منصتك الذكية للعروض العقارية والمستلزمات
+              متجرك الذكي للأقسام والعروض
             </p>
           </div>
           
           <div className="text-muted-foreground text-sm font-arabic">
-            <p>© ٢٠٢٤ دلّالتي. جميع الحقوق محفوظة.</p>
+            <p>© ٢٠٢٤ متجر أب الشامل. جميع الحقوق محفوظة.</p>
           </div>
         </div>
       </footer>

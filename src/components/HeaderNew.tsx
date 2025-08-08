@@ -60,10 +60,10 @@ const Header = ({ isDark, toggleTheme }: HeaderProps) => {
             </div>
             <div className="text-right">
               <h1 className="text-xl font-bold font-arabic bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-                دلّالتي
+                متجر أب الشامل
               </h1>
               <p className="text-xs text-muted-foreground font-arabic">
-                منصة العقارات الذكية
+                المتجر الشامل لكل الأقسام
               </p>
             </div>
           </Link>

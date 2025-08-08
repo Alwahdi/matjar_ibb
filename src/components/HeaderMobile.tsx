@@ -44,14 +44,14 @@ const HeaderMobile = ({ isDark, toggleTheme, showSearch = true }: HeaderMobilePr
           {/* الشعار */}
           <div className="flex items-center space-x-2 rtl:space-x-reverse">
             <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center shadow-glow">
-              <span className="text-lg font-bold text-primary-foreground">د</span>
+              <span className="text-lg font-bold text-primary-foreground">م</span>
             </div>
             <div className="text-right">
               <h1 className="text-lg font-bold font-arabic bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-                دلّالتي
+                متجر أب الشامل
               </h1>
               <p className="text-xs text-muted-foreground font-arabic leading-none">
-                منصتك الذكية
+                المتجر الشامل
               </p>
             </div>
           </div>
