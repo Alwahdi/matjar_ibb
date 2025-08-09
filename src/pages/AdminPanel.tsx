@@ -48,6 +48,28 @@ interface UserRole {
   created_at: string;
 }
 
+interface Category {
+  id: string;
+  parent_id?: string | null;
+  title: string;
+  subtitle?: string | null;
+  slug: string;
+  description?: string | null;
+  icon?: string | null;
+  order_index: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface CategoryRole {
+  id: string;
+  user_id: string;
+  category_id: string;
+  role: 'admin' | 'moderator' | 'user';
+  created_at: string;
+}
+
 export default function AdminPanel() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -63,6 +85,23 @@ export default function AdminPanel() {
   const [suspensionReason, setSuspensionReason] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminCheckLoading, setAdminCheckLoading] = useState(true);
+
+  // Categories & per-category roles
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryRoles, setCategoryRoles] = useState<CategoryRole[]>([]);
+
+  // Forms
+  const [newCategory, setNewCategory] = useState({
+    title: '',
+    slug: '',
+    subtitle: '',
+    description: '',
+    status: 'active'
+  });
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [assignUserId, setAssignUserId] = useState<string>('');
+  const [assignCategoryId, setAssignCategoryId] = useState<string>('');
+  const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator');
 
   // Check admin access first
   useEffect(() => {
@@ -121,8 +160,7 @@ export default function AdminPanel() {
     try {
       setLoading(true);
       
-      // Fetch all data in parallel
-      const [profilesResult, propertiesResult, rolesResult] = await Promise.all([
+      const [profilesResult, propertiesResult, rolesResult, categoriesResult, categoryRolesResult] = await Promise.all([
         supabase
           .from('profiles')
           .select('*')
@@ -133,6 +171,14 @@ export default function AdminPanel() {
           .order('created_at', { ascending: false }),
         supabase
           .from('user_roles')
+          .select('*')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('categories')
+          .select('*')
+          .order('order_index', { ascending: true }),
+        supabase
+          .from('category_roles')
           .select('*')
           .order('created_at', { ascending: false })
       ]);
@@ -168,6 +214,28 @@ export default function AdminPanel() {
         });
       } else {
         setUserRoles(rolesResult.data || []);
+      }
+
+      if (categoriesResult.error) {
+        console.error('Categories fetch error:', categoriesResult.error);
+        toast({
+          title: 'خطأ في تحميل الأقسام',
+          description: categoriesResult.error.message,
+          variant: 'destructive',
+        });
+      } else {
+        setCategories(categoriesResult.data as Category[] || []);
+      }
+
+      if (categoryRolesResult.error) {
+        console.error('Category roles fetch error:', categoryRolesResult.error);
+        toast({
+          title: 'خطأ في تحميل مشرفي الأقسام',
+          description: categoryRolesResult.error.message,
+          variant: 'destructive',
+        });
+      } else {
+        setCategoryRoles(categoryRolesResult.data as CategoryRole[] || []);
       }
 
     } catch (error) {
@@ -336,6 +404,82 @@ export default function AdminPanel() {
     }
   };
 
+  // Categories CRUD
+  const addCategory = async () => {
+    if (!newCategory.title.trim() || !newCategory.slug.trim()) {
+      toast({ title: 'بيانات ناقصة', description: 'العنوان والمعرّف (slug) مطلوبان', variant: 'destructive' });
+      return;
+    }
+    const { error } = await supabase.from('categories').insert({
+      title: newCategory.title.trim(),
+      slug: newCategory.slug.trim(),
+      subtitle: newCategory.subtitle?.trim() || null,
+      description: newCategory.description?.trim() || null,
+      status: newCategory.status,
+    });
+    if (error) {
+      toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'تم', description: 'تمت إضافة القسم بنجاح' });
+    setNewCategory({ title: '', slug: '', subtitle: '', description: '', status: 'active' });
+    fetchData();
+  };
+
+  const updateCategoryDetails = async () => {
+    if (!selectedCategory) return;
+    const { error } = await supabase
+      .from('categories')
+      .update({
+        title: selectedCategory.title,
+        subtitle: selectedCategory.subtitle,
+        description: selectedCategory.description,
+        status: selectedCategory.status,
+      })
+      .eq('id', selectedCategory.id);
+    if (error) {
+      toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'تم', description: 'تم تحديث القسم' });
+    setSelectedCategory(null);
+    fetchData();
+  };
+
+  const deleteCategoryById = async (id: string) => {
+    const { error } = await supabase.from('categories').delete().eq('id', id);
+    if (error) return toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
+    toast({ title: 'تم', description: 'تم حذف القسم' });
+    fetchData();
+  };
+
+  // Category roles
+  const assignCategoryModerator = async () => {
+    if (!assignUserId || !assignCategoryId) {
+      toast({ title: 'بيانات ناقصة', description: 'اختر المستخدم والقسم', variant: 'destructive' });
+      return;
+    }
+    const { error } = await supabase
+      .from('category_roles')
+      .upsert({ user_id: assignUserId, category_id: assignCategoryId, role: assignRole }, { onConflict: 'user_id,category_id' });
+    if (error) {
+      toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'تم', description: 'تم تعيين المشرف للقسم' });
+    setAssignUserId('');
+    setAssignCategoryId('');
+    setAssignRole('moderator');
+    fetchData();
+  };
+
+  const removeCategoryRole = async (id: string) => {
+    const { error } = await supabase.from('category_roles').delete().eq('id', id);
+    if (error) return toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
+    toast({ title: 'تم', description: 'تم إلغاء تعيين المشرف' });
+    fetchData();
+  };
+
   const getUserRole = (userId: string): 'admin' | 'moderator' | 'user' => {
     const role = userRoles.find(r => r.user_id === userId);
     return role?.role || 'user';
@@ -397,7 +541,7 @@ export default function AdminPanel() {
                 🛡️ لوحة الإدارة المتقدمة
               </h1>
               <p className="text-muted-foreground text-lg">
-                إدارة شاملة للمستخدمين والعقارات والأدوار في منصة دلّالتي
+                إدارة شاملة للمستخدمين والعقارات والأدوار في متجر أب الشامل
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -505,7 +649,7 @@ export default function AdminPanel() {
 
         {/* Enhanced Tabs */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 h-12">
+          <TabsList className="grid w-full grid-cols-5 h-12">
             <TabsTrigger value="users" className="gap-2 text-base">
               <Users className="h-4 w-4" />
               إدارة المستخدمين
@@ -517,6 +661,14 @@ export default function AdminPanel() {
             <TabsTrigger value="roles" className="gap-2 text-base">
               <Shield className="h-4 w-4" />
               إدارة الأدوار
+            </TabsTrigger>
+            <TabsTrigger value="categories" className="gap-2 text-base">
+              <Settings className="h-4 w-4" />
+              إدارة الأقسام
+            </TabsTrigger>
+            <TabsTrigger value="categoryRoles" className="gap-2 text-base">
+              <Activity className="h-4 w-4" />
+              مشرفو الأقسام
             </TabsTrigger>
           </TabsList>
 
@@ -797,6 +949,194 @@ export default function AdminPanel() {
                                   <SelectItem value="admin">مدير</SelectItem>
                                 </SelectContent>
                               </Select>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          {/* Categories Tab */}
+          <TabsContent value="categories">
+            <Card className="bg-gradient-card shadow-elegant">
+              <CardHeader>
+                <CardTitle className="text-xl">إدارة الأقسام</CardTitle>
+                <CardDescription>إضافة وتعديل وحذف الأقسام الظاهرة في التطبيق</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* New category form */}
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                  <Input placeholder="عنوان القسم" value={newCategory.title} onChange={(e) => setNewCategory(c => ({...c, title: e.target.value}))} />
+                  <Input placeholder="المعرّف (slug) بالإنجليزية" value={newCategory.slug} onChange={(e) => setNewCategory(c => ({...c, slug: e.target.value}))} />
+                  <Input placeholder="وصف قصير" value={newCategory.subtitle} onChange={(e) => setNewCategory(c => ({...c, subtitle: e.target.value}))} />
+                  <Input placeholder="وصف موسّع (اختياري)" value={newCategory.description} onChange={(e) => setNewCategory(c => ({...c, description: e.target.value}))} />
+                  <Select value={newCategory.status} onValueChange={(v) => setNewCategory(c => ({...c, status: v as 'active' | 'hidden'} as any))}>
+                    <SelectTrigger><SelectValue placeholder="الحالة" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">نشط</SelectItem>
+                      <SelectItem value="hidden">مخفي</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex justify-end">
+                  <Button className="gap-2" onClick={addCategory}><Plus className="h-4 w-4"/>إضافة قسم</Button>
+                </div>
+
+                {/* Categories table */}
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">العنوان</TableHead>
+                        <TableHead className="text-right">المعرّف</TableHead>
+                        <TableHead className="text-right">الحالة</TableHead>
+                        <TableHead className="text-right">الترتيب</TableHead>
+                        <TableHead className="text-right">تاريخ الإضافة</TableHead>
+                        <TableHead className="text-right">الإجراءات</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {categories.map((cat) => (
+                        <TableRow key={cat.id} className="hover:bg-muted/50">
+                          <TableCell className="font-medium">{cat.title}</TableCell>
+                          <TableCell>{cat.slug}</TableCell>
+                          <TableCell>
+                            <Badge variant={cat.status === 'active' ? 'default' : 'secondary'}>
+                              {cat.status === 'active' ? 'نشط' : 'مخفي'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{cat.order_index}</TableCell>
+                          <TableCell>{new Date(cat.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="outline" size="sm" className="gap-1" onClick={() => setSelectedCategory(cat)}>
+                                    <Edit className="h-4 w-4"/> تعديل
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                  <DialogHeader>
+                                    <DialogTitle>تعديل القسم</DialogTitle>
+                                  </DialogHeader>
+                                  {selectedCategory && selectedCategory.id === cat.id && (
+                                    <div className="space-y-3">
+                                      <Input value={selectedCategory.title} onChange={(e) => setSelectedCategory({ ...selectedCategory, title: e.target.value })} placeholder="العنوان"/>
+                                      <Input value={selectedCategory.subtitle || ''} onChange={(e) => setSelectedCategory({ ...selectedCategory, subtitle: e.target.value })} placeholder="الوصف القصير"/>
+                                      <Input value={selectedCategory.description || ''} onChange={(e) => setSelectedCategory({ ...selectedCategory, description: e.target.value })} placeholder="الوصف"/>
+                                      <Select value={selectedCategory.status} onValueChange={(v) => setSelectedCategory({ ...selectedCategory, status: v })}>
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="active">نشط</SelectItem>
+                                          <SelectItem value="hidden">مخفي</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                      <div className="flex justify-end">
+                                        <Button onClick={updateCategoryDetails}>حفظ</Button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </DialogContent>
+                              </Dialog>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="destructive" size="sm" className="gap-1">
+                                    <Trash2 className="h-4 w-4"/> حذف
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>تأكيد حذف القسم</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      سيؤثر حذف القسم على الصلاحيات المرتبطة به. هل تريد المتابعة؟
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                                    <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => deleteCategoryById(cat.id)}>
+                                      تأكيد الحذف
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Category Roles Tab */}
+          <TabsContent value="categoryRoles">
+            <Card className="bg-gradient-card shadow-elegant">
+              <CardHeader>
+                <CardTitle className="text-xl">تعيين مشرفين للأقسام</CardTitle>
+                <CardDescription>اختر مستخدمًا وقسمًا وحدد دوره</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <Select value={assignUserId} onValueChange={setAssignUserId}>
+                    <SelectTrigger><SelectValue placeholder="اختر مستخدمًا" /></SelectTrigger>
+                    <SelectContent>
+                      {profiles.map(p => (
+                        <SelectItem key={p.user_id} value={p.user_id}>{p.full_name || p.user_id}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={assignCategoryId} onValueChange={setAssignCategoryId}>
+                    <SelectTrigger><SelectValue placeholder="اختر قسمًا" /></SelectTrigger>
+                    <SelectContent>
+                      {categories.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={assignRole} onValueChange={(v) => setAssignRole(v as 'moderator' | 'admin')}>
+                    <SelectTrigger><SelectValue placeholder="الدور" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="moderator">مشرف</SelectItem>
+                      <SelectItem value="admin">مدير</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button className="gap-2" onClick={assignCategoryModerator}><Plus className="h-4 w-4"/>تعيين</Button>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">المستخدم</TableHead>
+                        <TableHead className="text-right">القسم</TableHead>
+                        <TableHead className="text-right">الدور</TableHead>
+                        <TableHead className="text-right">تاريخ التعيين</TableHead>
+                        <TableHead className="text-right">الإجراءات</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {categoryRoles.map(cr => {
+                        const profile = profiles.find(p => p.user_id === cr.user_id);
+                        const category = categories.find(c => c.id === cr.category_id);
+                        return (
+                          <TableRow key={cr.id} className="hover:bg-muted/50">
+                            <TableCell className="font-medium">{profile?.full_name || cr.user_id}</TableCell>
+                            <TableCell>{category?.title || cr.category_id}</TableCell>
+                            <TableCell>
+                              <Badge variant={cr.role === 'admin' ? 'default' : 'secondary'}>
+                                {getRoleDisplayName(cr.role)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{new Date(cr.created_at).toLocaleDateString('ar-SA')}</TableCell>
+                            <TableCell>
+                              <Button variant="destructive" size="sm" className="gap-1" onClick={() => removeCategoryRole(cr.id)}>
+                                <Trash2 className="h-4 w-4"/> حذف
+                              </Button>
                             </TableCell>
                           </TableRow>
                         );
