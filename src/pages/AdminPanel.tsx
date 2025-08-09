@@ -12,8 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Building2, Shield, UserX, Plus, Edit, Trash2, Search, Settings, BarChart3, Activity, TrendingUp, RefreshCw } from 'lucide-react';
+import { Users, Building2, Shield, UserX, Plus, Edit, Trash2, Search, Settings, BarChart3, Activity, TrendingUp, RefreshCw, Bell } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
+import AdminNotifications from '@/components/admin/AdminNotifications';
+import { useNotificationSender } from '@/hooks/useNotificationSender';
 
 interface Profile {
   id: string;
@@ -101,7 +103,10 @@ export default function AdminPanel() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [assignUserId, setAssignUserId] = useState<string>('');
   const [assignCategoryId, setAssignCategoryId] = useState<string>('');
-  const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator');
+const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator');
+
+  // Notification sender
+  const { sendToAll } = useNotificationSender();
 
   // Check admin access first
   useEffect(() => {
@@ -356,8 +361,9 @@ export default function AdminPanel() {
         title: "تم حذف العقار",
         description: "تم حذف العقار بنجاح",
       });
-      
       await fetchData();
+      // إشعار عام بحذف عرض
+      await sendToAll('حذف عرض', 'تم حذف أحد العروض من المتجر');
     } catch (error) {
       console.error('Delete property error:', error);
       toast({
@@ -424,6 +430,8 @@ export default function AdminPanel() {
     toast({ title: 'تم', description: 'تمت إضافة القسم بنجاح' });
     setNewCategory({ title: '', slug: '', subtitle: '', description: '', status: 'active' });
     fetchData();
+    // إشعار عام بوجود قسم جديد
+    await sendToAll('إضافة قسم جديد', `تم إضافة قسم جديد: ${newCategory.title}`);
   };
 
   const updateCategoryDetails = async () => {
@@ -1071,17 +1079,17 @@ export default function AdminPanel() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+        </TabsContent>
 
-          {/* Category Roles Tab */}
-          <TabsContent value="categoryRoles">
-            <Card className="bg-gradient-card shadow-elegant">
-              <CardHeader>
-                <CardTitle className="text-xl">تعيين مشرفين للأقسام</CardTitle>
-                <CardDescription>اختر مستخدمًا وقسمًا وحدد دوره</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        {/* Category Roles Tab */}
+        <TabsContent value="categoryRoles">
+          <Card className="bg-gradient-card shadow-elegant">
+            <CardHeader>
+              <CardTitle className="text-xl">تعيين مشرفين للأقسام</CardTitle>
+              <CardDescription>اختر مستخدمًا وقسمًا وحدد دوره</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <Select value={assignUserId} onValueChange={setAssignUserId}>
                     <SelectTrigger><SelectValue placeholder="اختر مستخدمًا" /></SelectTrigger>
                     <SelectContent>

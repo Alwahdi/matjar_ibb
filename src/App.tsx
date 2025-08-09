@@ -17,8 +17,8 @@ import AccountSettings from "./pages/AccountSettings";
 import Favorites from "./pages/Favorites";
 import NotFound from "./pages/NotFound";
 import AdminPanel from "./pages/AdminPanel";
-
 import CacheManager from "@/components/CacheManager";
+import BackHandler from "@/components/BackHandler";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +32,7 @@ const App = () => (
         <BrowserRouter>
           <CacheManager />
           <AdminRedirect />
+          <BackHandler />
           <Routes>
             {/* Public routes */}
             <Route path="/landing" element={<Landing />} />
