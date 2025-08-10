@@ -11,12 +11,17 @@ export default function BackHandler() {
   useEffect(() => {
     const remove = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
       const path = location.pathname;
+      const goHomeRoutes = [
+        '/admin', '/properties', '/favorites', '/account', '/landing', '/privacy'
+      ];
       const isAdminRoute = path.startsWith('/admin');
-      // If on admin or root-level routes, go to home instead of exiting
-      if (isAdminRoute) {
+      const isProductRoute = path.startsWith('/product/');
+      const shouldGoHome = isAdminRoute || isProductRoute || goHomeRoutes.includes(path);
+
+      if (shouldGoHome) {
         navigate('/', { replace: true });
       } else if (!canGoBack) {
-        // Prevent accidental exits; optionally do nothing
+        // Stay on current page to prevent accidental exit
       }
     });
 

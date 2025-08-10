@@ -103,10 +103,23 @@ export default function AdminPanel() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [assignUserId, setAssignUserId] = useState<string>('');
   const [assignCategoryId, setAssignCategoryId] = useState<string>('');
-const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator');
+  const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator');
+
+  // Property forms
+  const [newProperty, setNewProperty] = useState({
+    title: '',
+    price: 0,
+    property_type: 'apartment',
+    location: '',
+    city: '',
+    listing_type: 'for_sale',
+    status: 'active',
+    category: 'real-estate'
+  });
+  const [editingProperty, setEditingProperty] = useState<any | null>(null);
 
   // Notification sender
-  const { sendToAll } = useNotificationSender();
+  const { sendToAll, suggest } = useNotificationSender();
 
   // Check admin access first
   useEffect(() => {
@@ -340,7 +353,7 @@ const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator')
     }
   };
 
-  const deleteProperty = async (propertyId: string) => {
+  const deleteProperty = async (propertyId: string, propertyTitle?: string) => {
     try {
       const { error } = await supabase
         .from('properties')
@@ -362,8 +375,8 @@ const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator')
         description: "تم حذف العقار بنجاح",
       });
       await fetchData();
-      // إشعار عام بحذف عرض
-      await sendToAll('حذف عرض', 'تم حذف أحد العروض من المتجر');
+      const auto = suggest('العرض', 'حذف', propertyTitle);
+      await sendToAll(auto.title, auto.message, 'warning');
     } catch (error) {
       console.error('Delete property error:', error);
       toast({
@@ -411,6 +424,61 @@ const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator')
   };
 
   // Categories CRUD
+  // Properties CRUD
+  const addProperty = async () => {
+    if (!newProperty.title.trim() || !newProperty.location.trim() || !newProperty.city.trim() || !newProperty.property_type.trim()) {
+      toast({ title: 'بيانات ناقصة', description: 'العنوان، الموقع، المدينة، النوع مطلوبة', variant: 'destructive' });
+      return;
+    }
+    const payload: any = {
+      title: newProperty.title.trim(),
+      price: Number(newProperty.price) || 0,
+      property_type: newProperty.property_type,
+      location: newProperty.location.trim(),
+      city: newProperty.city.trim(),
+      listing_type: newProperty.listing_type,
+      status: newProperty.status,
+      category: newProperty.category,
+      agent_id: user?.id,
+      agent_name: profiles.find(p => p.user_id === user?.id)?.full_name || 'مسؤول النظام'
+    };
+    const { error } = await supabase.from('properties').insert(payload);
+    if (error) {
+      toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'تم', description: 'تمت إضافة العرض بنجاح' });
+    const auto = suggest('العرض', 'إضافة', newProperty.title);
+    await sendToAll(auto.title, auto.message, 'success');
+    setNewProperty({ title: '', price: 0, property_type: 'apartment', location: '', city: '', listing_type: 'for_sale', status: 'active', category: 'real-estate' });
+    fetchData();
+  };
+
+  const updateProperty = async () => {
+    if (!editingProperty) return;
+    const updates: any = {
+      title: editingProperty.title,
+      price: Number(editingProperty.price) || 0,
+      property_type: editingProperty.property_type,
+      location: editingProperty.location,
+      city: editingProperty.city,
+      listing_type: editingProperty.listing_type,
+      status: editingProperty.status,
+      category: editingProperty.category,
+    };
+    const { error } = await supabase.from('properties').update(updates).eq('id', editingProperty.id);
+    if (error) {
+      toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'تم', description: 'تم تحديث العرض' });
+    const auto = suggest('العرض', 'تعديل', editingProperty.title);
+    await sendToAll(auto.title, auto.message, 'info');
+    setEditingProperty(null);
+    fetchData();
+  };
+
+  // Categories CRUD
   const addCategory = async () => {
     if (!newCategory.title.trim() || !newCategory.slug.trim()) {
       toast({ title: 'بيانات ناقصة', description: 'العنوان والمعرّف (slug) مطلوبان', variant: 'destructive' });
@@ -428,10 +496,10 @@ const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator')
       return;
     }
     toast({ title: 'تم', description: 'تمت إضافة القسم بنجاح' });
+    const auto = suggest('القسم', 'إضافة', newCategory.title.trim());
+    await sendToAll(auto.title, auto.message, 'info');
     setNewCategory({ title: '', slug: '', subtitle: '', description: '', status: 'active' });
     fetchData();
-    // إشعار عام بوجود قسم جديد
-    await sendToAll('إضافة قسم جديد', `تم إضافة قسم جديد: ${newCategory.title}`);
   };
 
   const updateCategoryDetails = async () => {
@@ -450,14 +518,18 @@ const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator')
       return;
     }
     toast({ title: 'تم', description: 'تم تحديث القسم' });
+    const auto = suggest('القسم', 'تعديل', selectedCategory.title);
+    await sendToAll(auto.title, auto.message, 'info');
     setSelectedCategory(null);
     fetchData();
   };
 
-  const deleteCategoryById = async (id: string) => {
+  const deleteCategoryById = async (id: string, title?: string) => {
     const { error } = await supabase.from('categories').delete().eq('id', id);
     if (error) return toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
     toast({ title: 'تم', description: 'تم حذف القسم' });
+    const auto = suggest('القسم', 'حذف', title);
+    await sendToAll(auto.title, auto.message, 'warning');
     fetchData();
   };
 
@@ -657,7 +729,7 @@ const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator')
 
         {/* Enhanced Tabs */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 h-12">
+          <TabsList className="grid w-full grid-cols-6 h-12">
             <TabsTrigger value="users" className="gap-2 text-base">
               <Users className="h-4 w-4" />
               إدارة المستخدمين
@@ -677,6 +749,10 @@ const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator')
             <TabsTrigger value="categoryRoles" className="gap-2 text-base">
               <Activity className="h-4 w-4" />
               مشرفو الأقسام
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="gap-2 text-base">
+              <Bell className="h-4 w-4" />
+              الإشعارات
             </TabsTrigger>
           </TabsList>
 
@@ -811,6 +887,26 @@ const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator')
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Create new property */}
+                <div className="space-y-3 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+                    <Input placeholder="عنوان العرض" value={newProperty.title} onChange={(e) => setNewProperty(p => ({...p, title: e.target.value}))} />
+                    <Input type="number" placeholder="السعر" value={newProperty.price} onChange={(e) => setNewProperty(p => ({...p, price: Number(e.target.value)}))} />
+                    <Input placeholder="النوع (مثال: apartment)" value={newProperty.property_type} onChange={(e) => setNewProperty(p => ({...p, property_type: e.target.value}))} />
+                    <Input placeholder="المدينة" value={newProperty.city} onChange={(e) => setNewProperty(p => ({...p, city: e.target.value}))} />
+                    <Input placeholder="الموقع" value={newProperty.location} onChange={(e) => setNewProperty(p => ({...p, location: e.target.value}))} />
+                    <Select value={newProperty.listing_type} onValueChange={(v) => setNewProperty(p => ({...p, listing_type: v}))}>
+                      <SelectTrigger><SelectValue placeholder="نوع الإعلان" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="for_sale">للبيع</SelectItem>
+                        <SelectItem value="for_rent">للإيجار</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex justify-end">
+                    <Button className="gap-2" onClick={addProperty}><Plus className="h-4 w-4"/>إضافة عرض</Button>
+                  </div>
+                </div>
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -870,7 +966,7 @@ const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator')
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>إلغاء</AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={() => deleteProperty(property.id)}
+                                    onClick={() => deleteProperty(property.id, property.title)}
                                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                   >
                                     تأكيد الحذف
@@ -1064,7 +1160,7 @@ const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator')
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                                    <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => deleteCategoryById(cat.id)}>
+                                    <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => deleteCategoryById(cat.id, cat.title)}>
                                       تأكيد الحذف
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
@@ -1154,6 +1250,11 @@ const [assignRole, setAssignRole] = useState<'moderator' | 'admin'>('moderator')
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          {/* Notifications Tab */}
+          <TabsContent value="notifications">
+            <AdminNotifications />
           </TabsContent>
         </Tabs>
       </div>
