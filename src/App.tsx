@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminGuard from "@/components/AdminGuard";
 import { AdminRedirect } from "@/components/AdminRedirect";
 import Index from "./pages/Index";
 import Landing from "./pages/Landing";
@@ -46,7 +47,13 @@ const App = () => (
             <Route path="/product/:id" element={<ProtectedRoute><ProductDetail /></ProtectedRoute>} />
             <Route path="/account" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
             <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <AdminGuard>
+                  <AdminPanel />
+                </AdminGuard>
+              </ProtectedRoute>
+            } />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

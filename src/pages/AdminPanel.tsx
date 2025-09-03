@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useRoles } from '@/hooks/useRoles';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Users, Building2, Shield, UserX, Plus, Edit, Trash2, Search, Settings, BarChart3, Activity, TrendingUp, RefreshCw, Bell } from 'lucide-react';
+import { Users, Building2, Shield, UserX, Plus, Edit, Trash2, Search, Settings, BarChart3, Activity, TrendingUp, RefreshCw, Bell, FolderOpen, UserCheck } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import AdminNotifications from '@/components/admin/AdminNotifications';
 import { useNotificationSender } from '@/hooks/useNotificationSender';
@@ -46,7 +47,7 @@ interface Property {
 interface UserRole {
   id: string;
   user_id: string;
-  role: 'admin' | 'moderator' | 'user';
+  role: 'admin' | 'moderator' | 'user' | 'properties_admin' | 'categories_admin' | 'notifications_admin';
   created_at: string;
 }
 
@@ -77,6 +78,7 @@ export default function AdminPanel() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { theme, isDark, toggleTheme } = useTheme();
+  const { isAdmin, isPropertiesAdmin, isCategoriesAdmin, isNotificationsAdmin } = useRoles();
   
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
@@ -85,7 +87,6 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [suspensionReason, setSuspensionReason] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
   const [adminCheckLoading, setAdminCheckLoading] = useState(true);
 
   // Categories & per-category roles
@@ -154,7 +155,7 @@ export default function AdminPanel() {
           return;
         }
         
-        setIsAdmin(true);
+        
         await fetchData();
       } catch (error) {
         console.error('Admin access check failed:', error);
@@ -560,14 +561,17 @@ export default function AdminPanel() {
     fetchData();
   };
 
-  const getUserRole = (userId: string): 'admin' | 'moderator' | 'user' => {
+  const getUserRole = (userId: string): 'admin' | 'moderator' | 'user' | 'properties_admin' | 'categories_admin' | 'notifications_admin' => {
     const role = userRoles.find(r => r.user_id === userId);
     return role?.role || 'user';
   };
 
   const getRoleDisplayName = (role: string) => {
     switch (role) {
-      case 'admin': return 'مدير';
+      case 'admin': return 'مدير عام';
+      case 'properties_admin': return 'مدير العقارات';
+      case 'categories_admin': return 'مدير الأقسام';
+      case 'notifications_admin': return 'مدير الإشعارات';
       case 'moderator': return 'مشرف';
       case 'user': return 'مستخدم';
       default: return 'مستخدم';
@@ -727,37 +731,51 @@ export default function AdminPanel() {
           </div>
         </div>
 
-        {/* Enhanced Tabs */}
-        <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 h-12">
-            <TabsTrigger value="users" className="gap-2 text-base">
-              <Users className="h-4 w-4" />
-              إدارة المستخدمين
-            </TabsTrigger>
-            <TabsTrigger value="properties" className="gap-2 text-base">
-              <Building2 className="h-4 w-4" />
-              إدارة العقارات
-            </TabsTrigger>
-            <TabsTrigger value="roles" className="gap-2 text-base">
-              <Shield className="h-4 w-4" />
-              إدارة الأدوار
-            </TabsTrigger>
-            <TabsTrigger value="categories" className="gap-2 text-base">
-              <Settings className="h-4 w-4" />
-              إدارة الأقسام
-            </TabsTrigger>
-            <TabsTrigger value="categoryRoles" className="gap-2 text-base">
-              <Activity className="h-4 w-4" />
-              مشرفو الأقسام
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="gap-2 text-base">
-              <Bell className="h-4 w-4" />
-              الإشعارات
-            </TabsTrigger>
-          </TabsList>
+        {/* Enhanced Role-Based Tabs */}
+        <Tabs defaultValue={isAdmin ? "users" : (isPropertiesAdmin ? "properties" : (isCategoriesAdmin ? "categories" : "notifications"))} className="space-y-6">
+          <div className="overflow-x-auto">
+            <TabsList className="flex w-auto gap-2 p-2 h-auto min-w-full">
+              {isAdmin && (
+                <TabsTrigger value="users" className="gap-2 text-sm md:text-base whitespace-nowrap">
+                  <Users className="h-4 w-4" />
+                  <span className="hidden sm:inline">إدارة </span>المستخدمين
+                </TabsTrigger>
+              )}
+              {(isAdmin || isPropertiesAdmin) && (
+                <TabsTrigger value="properties" className="gap-2 text-sm md:text-base whitespace-nowrap">
+                  <Building2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">إدارة </span>العقارات
+                </TabsTrigger>
+              )}
+              {isAdmin && (
+                <TabsTrigger value="roles" className="gap-2 text-sm md:text-base whitespace-nowrap">
+                  <Shield className="h-4 w-4" />
+                  <span className="hidden sm:inline">إدارة </span>الأدوار
+                </TabsTrigger>
+              )}
+              {(isAdmin || isCategoriesAdmin) && (
+                <TabsTrigger value="categories" className="gap-2 text-sm md:text-base whitespace-nowrap">
+                  <FolderOpen className="h-4 w-4" />
+                  <span className="hidden sm:inline">إدارة </span>الأقسام
+                </TabsTrigger>
+              )}
+              {isAdmin && (
+                <TabsTrigger value="category-roles" className="gap-2 text-sm md:text-base whitespace-nowrap">
+                  <UserCheck className="h-4 w-4" />
+                  <span className="hidden sm:inline">أدوار </span>الأقسام
+                </TabsTrigger>
+              )}
+              {(isAdmin || isNotificationsAdmin) && (
+                <TabsTrigger value="notifications" className="gap-2 text-sm md:text-base whitespace-nowrap">
+                  <Bell className="h-4 w-4" />
+                  الإشعارات
+                </TabsTrigger>
+              )}
+            </TabsList>
+          </div>
 
-          {/* Users Tab */}
-          <TabsContent value="users">
+          {/* Users Tab - Admin Only */}
+          {isAdmin && <TabsContent value="users">
             <Card className="bg-gradient-card shadow-elegant">
               <CardHeader>
                 <CardTitle className="text-xl">المستخدمون المسجلون</CardTitle>
@@ -875,10 +893,10 @@ export default function AdminPanel() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent>}
 
-          {/* Properties Tab */}
-          <TabsContent value="properties">
+          {/* Properties Tab - Properties Admin */}
+          {(isAdmin || isPropertiesAdmin) && <TabsContent value="properties">
             <Card className="bg-gradient-card shadow-elegant">
               <CardHeader>
                 <CardTitle className="text-xl">العقارات المدرجة</CardTitle>
@@ -982,10 +1000,10 @@ export default function AdminPanel() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent>}
 
-          {/* Roles Tab */}
-          <TabsContent value="roles">
+          {/* Roles Tab - Admin Only */}
+          {isAdmin && <TabsContent value="roles">
             <Card className="bg-gradient-card shadow-elegant">
               <CardHeader>
                 <CardTitle className="text-xl">إدارة الأدوار والصلاحيات</CardTitle>
@@ -1062,9 +1080,9 @@ export default function AdminPanel() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-          {/* Categories Tab */}
-          <TabsContent value="categories">
+          </TabsContent>}
+          {/* Categories Tab - Categories Admin */}
+          {(isAdmin || isCategoriesAdmin) && <TabsContent value="categories">
             <Card className="bg-gradient-card shadow-elegant">
               <CardHeader>
                 <CardTitle className="text-xl">إدارة الأقسام</CardTitle>
@@ -1175,7 +1193,7 @@ export default function AdminPanel() {
                 </div>
               </CardContent>
             </Card>
-        </TabsContent>
+          </TabsContent>}
 
         {/* Category Roles Tab */}
         <TabsContent value="categoryRoles">
@@ -1250,10 +1268,10 @@ export default function AdminPanel() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </TabsContent>}
           
-          {/* Notifications Tab */}
-          <TabsContent value="notifications">
+          {/* Notifications Tab - Notifications Admin */}
+          {(isAdmin || isNotificationsAdmin) && <TabsContent value="notifications">
             <AdminNotifications />
           </TabsContent>
         </Tabs>

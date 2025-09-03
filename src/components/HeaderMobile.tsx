@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import NotificationCenter from "@/components/NotificationCenter";
 import { useAuth } from "@/hooks/useAuth";
+import { useRoles } from "@/hooks/useRoles";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { supabase } from '@/integrations/supabase/client';
 
 interface HeaderMobileProps {
   isDark: boolean;
@@ -18,19 +18,9 @@ interface HeaderMobileProps {
 const HeaderMobile = ({ isDark, toggleTheme, showSearch = true }: HeaderMobileProps) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (user) {
-        const { data } = await supabase.rpc('is_admin', { _user_id: user.id });
-        setIsAdmin(!!data);
-      }
-    };
-    checkAdminStatus();
-  }, [user]);
+  const { isAnyAdmin } = useRoles();
 
   const handleSignOut = async () => {
     await signOut();
@@ -88,7 +78,7 @@ const HeaderMobile = ({ isDark, toggleTheme, showSearch = true }: HeaderMobilePr
                   <User className="w-4 h-4 ml-2" />
                   إعدادات الحساب
                 </DropdownMenuItem>
-                {isAdmin && (
+                {isAnyAdmin && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => navigate('/admin')} className="font-arabic text-primary">
