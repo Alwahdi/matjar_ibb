@@ -1195,9 +1195,10 @@ export default function AdminPanel() {
             </Card>
           </TabsContent>}
 
-        {/* Category Roles Tab */}
-        <TabsContent value="categoryRoles">
-          <Card className="bg-gradient-card shadow-elegant">
+          {/* Category Roles Tab - Admin Only */}
+          {isAdmin && (
+            <TabsContent value="category-roles">
+              <Card className="bg-gradient-card shadow-elegant">
             <CardHeader>
               <CardTitle className="text-xl">تعيين مشرفين للأقسام</CardTitle>
               <CardDescription>اختر مستخدمًا وقسمًا وحدد دوره</CardDescription>
@@ -1268,12 +1269,15 @@ export default function AdminPanel() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>}
+          </TabsContent>
+          )}
           
           {/* Notifications Tab - Notifications Admin */}
-          {(isAdmin || isNotificationsAdmin) && <TabsContent value="notifications">
-            <AdminNotifications />
-          </TabsContent>
+          {(isAdmin || isNotificationsAdmin) && (
+            <TabsContent value="notifications">
+              <AdminNotifications />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
