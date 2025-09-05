@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { FolderOpen, Plus, Edit, Trash2, Search, UserPlus, Users } from 'lucide-react';
+import { FolderOpen, Plus, Edit, Trash2, Search, UserPlus, Users, X } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -167,16 +167,7 @@ export default function SectionManagement() {
         description: editingCategory ? "تم تحديث القسم بنجاح" : "تم إنشاء القسم بنجاح"
       });
 
-      setCategoryForm({
-        title: '',
-        subtitle: '',
-        slug: '',
-        description: '',
-        icon: '',
-        parent_id: ''
-      });
-      setEditingCategory(null);
-      setCategoryDialogOpen(false);
+      resetCategoryForm();
       fetchCategories();
     } catch (error) {
       console.error('Error saving category:', error);
@@ -186,6 +177,19 @@ export default function SectionManagement() {
         variant: "destructive"
       });
     }
+  };
+
+  const resetCategoryForm = () => {
+    setCategoryForm({
+      title: '',
+      subtitle: '',
+      slug: '',
+      description: '',
+      icon: '',
+      parent_id: ''
+    });
+    setEditingCategory(null);
+    setCategoryDialogOpen(false);
   };
 
   const deleteCategory = async (categoryId: string) => {
@@ -264,13 +268,16 @@ export default function SectionManagement() {
   };
 
   const getCategoryManagers = (categoryId: string) => {
-    const managers = categoryRoles
+    return categoryRoles
       .filter(cr => cr.category_id === categoryId)
       .map(cr => {
         const profile = profiles.find(p => p.user_id === cr.user_id);
-        return profile?.full_name || 'غير معروف';
+        return { 
+          id: cr.id,
+          name: profile?.full_name || 'غير معروف',
+          phone: profile?.phone || ''
+        };
       });
-    return managers;
   };
 
   const removeCategoryManager = async (roleId: string) => {
@@ -305,195 +312,196 @@ export default function SectionManagement() {
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FolderOpen className="w-5 h-5" />
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <FolderOpen className="w-6 h-6" />
             إدارة الأقسام
-          </CardTitle>
-          <CardDescription>
-            إدارة الأقسام وتعيين مدراء الأقسام
-          </CardDescription>
+          </h2>
+          <p className="text-muted-foreground mt-1">إدارة الأقسام وتعيين مدراء الأقسام</p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Dialog open={assignmentDialogOpen} onOpenChange={setAssignmentDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <UserPlus className="w-4 h-4" />
+                تعيين مدير أقسام
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>تعيين مدير أقسام</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="user-select">المستخدم</Label>
+                  <Select value={selectedUser} onValueChange={setSelectedUser}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر مستخدم..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {profiles.map((profile) => (
+                        <SelectItem key={profile.id} value={profile.user_id}>
+                          {profile.full_name} ({profile.phone})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>الأقسام المراد إدارتها</Label>
+                  <div className="space-y-2 max-h-48 overflow-y-auto border rounded p-3 mt-2">
+                    {categories.map((category) => (
+                      <div key={category.id} className="flex items-center space-x-2 space-x-reverse">
+                        <Checkbox
+                          id={category.id}
+                          checked={selectedCategories.includes(category.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedCategories(prev => [...prev, category.id]);
+                            } else {
+                              setSelectedCategories(prev => prev.filter(id => id !== category.id));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={category.id} className="text-sm">{category.title}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <Button onClick={assignSectionManager} className="w-full" disabled={!selectedUser || selectedCategories.length === 0}>
+                  تعيين مدير الأقسام
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => resetCategoryForm()} className="gap-2">
+                <Plus className="w-4 h-4" />
+                إضافة قسم
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>{editingCategory ? 'تحديث القسم' : 'إضافة قسم جديد'}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="title">عنوان القسم *</Label>
+                  <Input
+                    id="title"
+                    value={categoryForm.title}
+                    onChange={(e) => setCategoryForm(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="اسم القسم"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="slug">الرمز المميز *</Label>
+                  <Input
+                    id="slug"
+                    value={categoryForm.slug}
+                    onChange={(e) => setCategoryForm(prev => ({ ...prev, slug: e.target.value }))}
+                    placeholder="category-slug"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="subtitle">العنوان الفرعي</Label>
+                  <Input
+                    id="subtitle"
+                    value={categoryForm.subtitle}
+                    onChange={(e) => setCategoryForm(prev => ({ ...prev, subtitle: e.target.value }))}
+                    placeholder="وصف مختصر"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="description">الوصف</Label>
+                  <Textarea
+                    id="description"
+                    value={categoryForm.description}
+                    onChange={(e) => setCategoryForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="وصف مفصل للقسم"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="icon">الأيقونة</Label>
+                  <Input
+                    id="icon"
+                    value={categoryForm.icon}
+                    onChange={(e) => setCategoryForm(prev => ({ ...prev, icon: e.target.value }))}
+                    placeholder="اسم الأيقونة"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="parent">القسم الأب</Label>
+                  <Select 
+                    value={categoryForm.parent_id} 
+                    onValueChange={(value) => setCategoryForm(prev => ({ ...prev, parent_id: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="اختر القسم الأب (اختياري)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">بدون قسم أب</SelectItem>
+                      {categories.filter(cat => cat.id !== editingCategory?.id).map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={saveCategory} className="w-full">
+                  {editingCategory ? 'تحديث' : 'إضافة'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Search */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="البحث في الأقسام..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pr-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Categories Table */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg">الأقسام ({filteredCategories.length})</CardTitle>
+          <CardDescription>جميع الأقسام المتاحة في النظام</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="البحث في الأقسام..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-10"
-              />
-            </div>
-            <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => {
-                  setEditingCategory(null);
-                  setCategoryForm({
-                    title: '',
-                    subtitle: '',
-                    slug: '',
-                    description: '',
-                    icon: '',
-                    parent_id: ''
-                  });
-                }}>
-                  <Plus className="w-4 h-4 ml-2" />
-                  إضافة قسم
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>{editingCategory ? 'تحديث القسم' : 'إضافة قسم جديد'}</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="title">عنوان القسم *</Label>
-                    <Input
-                      id="title"
-                      value={categoryForm.title}
-                      onChange={(e) => setCategoryForm(prev => ({ ...prev, title: e.target.value }))}
-                      placeholder="اسم القسم"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="slug">الرمز المميز *</Label>
-                    <Input
-                      id="slug"
-                      value={categoryForm.slug}
-                      onChange={(e) => setCategoryForm(prev => ({ ...prev, slug: e.target.value }))}
-                      placeholder="category-slug"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="subtitle">العنوان الفرعي</Label>
-                    <Input
-                      id="subtitle"
-                      value={categoryForm.subtitle}
-                      onChange={(e) => setCategoryForm(prev => ({ ...prev, subtitle: e.target.value }))}
-                      placeholder="وصف مختصر"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="description">الوصف</Label>
-                    <Textarea
-                      id="description"
-                      value={categoryForm.description}
-                      onChange={(e) => setCategoryForm(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="وصف مفصل للقسم"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="icon">الأيقونة</Label>
-                    <Input
-                      id="icon"
-                      value={categoryForm.icon}
-                      onChange={(e) => setCategoryForm(prev => ({ ...prev, icon: e.target.value }))}
-                      placeholder="اسم الأيقونة"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="parent">القسم الأب</Label>
-                    <Select 
-                      value={categoryForm.parent_id} 
-                      onValueChange={(value) => setCategoryForm(prev => ({ ...prev, parent_id: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="اختر القسم الأب (اختياري)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">بدون قسم أب</SelectItem>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button onClick={saveCategory} className="w-full">
-                    {editingCategory ? 'تحديث' : 'إضافة'}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-            
-            <Dialog open={assignmentDialogOpen} onOpenChange={setAssignmentDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <UserPlus className="w-4 h-4 ml-2" />
-                  تعيين مدير أقسام
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>تعيين مدير أقسام</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="user-select">المستخدم</Label>
-                    <Select value={selectedUser} onValueChange={setSelectedUser}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="اختر مستخدم..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {profiles.map((profile) => (
-                          <SelectItem key={profile.id} value={profile.user_id}>
-                            {profile.full_name} ({profile.phone})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>الأقسام المراد إدارتها</Label>
-                    <div className="space-y-2 max-h-48 overflow-y-auto border rounded p-2">
-                      {categories.map((category) => (
-                        <div key={category.id} className="flex items-center space-x-2 space-x-reverse">
-                          <Checkbox
-                            id={category.id}
-                            checked={selectedCategories.includes(category.id)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedCategories(prev => [...prev, category.id]);
-                              } else {
-                                setSelectedCategories(prev => prev.filter(id => id !== category.id));
-                              }
-                            }}
-                          />
-                          <Label htmlFor={category.id}>{category.title}</Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <Button onClick={assignSectionManager} className="w-full">
-                    تعيين مدير الأقسام
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          <div className="rounded-md border">
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>اسم القسم</TableHead>
-                  <TableHead>الرمز المميز</TableHead>
-                  <TableHead>الحالة</TableHead>
+                  <TableHead className="hidden sm:table-cell">الرمز المميز</TableHead>
+                  <TableHead className="hidden md:table-cell">الحالة</TableHead>
                   <TableHead>مدراء القسم</TableHead>
-                  <TableHead>تاريخ الإنشاء</TableHead>
+                  <TableHead className="hidden lg:table-cell">تاريخ الإنشاء</TableHead>
                   <TableHead>الإجراءات</TableHead>
                 </TableRow>
               </TableHeader>
@@ -502,9 +510,18 @@ export default function SectionManagement() {
                   const managers = getCategoryManagers(category.id);
                   return (
                     <TableRow key={category.id}>
-                      <TableCell className="font-medium">{category.title}</TableCell>
-                      <TableCell>{category.slug}</TableCell>
                       <TableCell>
+                        <div>
+                          <div className="font-medium">{category.title}</div>
+                          {category.subtitle && (
+                            <div className="text-sm text-muted-foreground">{category.subtitle}</div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <code className="text-xs bg-muted px-1 py-0.5 rounded">{category.slug}</code>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
                         <Badge variant={category.status === 'active' ? "default" : "secondary"}>
                           {category.status === 'active' ? 'نشط' : 'غير نشط'}
                         </Badge>
@@ -512,9 +529,16 @@ export default function SectionManagement() {
                       <TableCell>
                         {managers.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
-                            {managers.map((manager, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {manager}
+                            {managers.map((manager) => (
+                              <Badge 
+                                key={manager.id} 
+                                variant="outline" 
+                                className="text-xs cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
+                                onClick={() => removeCategoryManager(manager.id)}
+                                title="اضغط لحذف المدير"
+                              >
+                                {manager.name}
+                                <X className="w-3 h-3 mr-1" />
                               </Badge>
                             ))}
                           </div>
@@ -522,11 +546,11 @@ export default function SectionManagement() {
                           <span className="text-muted-foreground text-sm">لا يوجد مدراء</span>
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         {new Date(category.created_at).toLocaleDateString('ar-SA')}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           <Button
                             variant="outline"
                             size="sm"
@@ -555,7 +579,7 @@ export default function SectionManagement() {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>حذف القسم</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  هل أنت متأكد من حذف هذا القسم؟ لا يمكن التراجع عن هذا الإجراء.
+                                  هل أنت متأكد من حذف قسم "{category.title}"؟ لا يمكن التراجع عن هذا الإجراء.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -574,6 +598,21 @@ export default function SectionManagement() {
               </TableBody>
             </Table>
           </div>
+          
+          {filteredCategories.length === 0 && (
+            <div className="text-center py-8">
+              <FolderOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-semibold text-lg mb-2">لا توجد أقسام</h3>
+              <p className="text-muted-foreground mb-4">
+                {searchTerm ? 'لم يتم العثور على أقسام تطابق البحث' : 'لا توجد أقسام في النظام'}
+              </p>
+              {!searchTerm && (
+                <Button onClick={() => setCategoryDialogOpen(true)}>
+                  إضافة قسم جديد
+                </Button>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

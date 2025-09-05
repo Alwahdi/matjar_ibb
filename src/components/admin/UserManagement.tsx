@@ -243,16 +243,17 @@ export default function UserManagement() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="w-5 h-5" />
-          إدارة المستخدمين
-        </CardTitle>
-        <CardDescription>
-          إدارة المستخدمين وتعيين الأدوار وحالة التفعيل
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            إدارة المستخدمين
+          </CardTitle>
+          <CardDescription>
+            إدارة المستخدمين وتعيين الأدوار وحالة التفعيل
+          </CardDescription>
+        </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4 mb-6">
           <div className="relative flex-1">
@@ -421,7 +422,8 @@ export default function UserManagement() {
             </TableBody>
           </Table>
         </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

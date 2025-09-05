@@ -7,7 +7,6 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminGuard from "@/components/AdminGuard";
-import { AdminRedirect } from "@/components/AdminRedirect";
 import Index from "./pages/Index";
 import Landing from "./pages/Landing";
 import Privacy from "./pages/Privacy";
@@ -32,7 +31,6 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <CacheManager />
-          <AdminRedirect />
           <BackHandler />
           <Routes>
             {/* Public routes */}

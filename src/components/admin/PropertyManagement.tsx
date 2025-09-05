@@ -310,48 +310,24 @@ export default function PropertyManagement() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Building2 className="w-5 h-5" />
-          إدارة العقارات
-        </CardTitle>
-        <CardDescription>
-          إدارة العقارات المنشورة في النظام
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
-          <div className="relative flex-1 w-full">
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="البحث في العقارات..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-10"
-            />
-          </div>
-          
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="تصفية حسب الحالة" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">جميع العقارات</SelectItem>
-              <SelectItem value="active">نشطة</SelectItem>
-              <SelectItem value="inactive">غير نشطة</SelectItem>
-              <SelectItem value="sold">مباعة</SelectItem>
-              <SelectItem value="rented">مؤجرة</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Dialog open={propertyDialogOpen} onOpenChange={setPropertyDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={resetForm} className="w-full sm:w-auto">
-                <Plus className="w-4 h-4 ml-2" />
-                إضافة عقار
-              </Button>
-            </DialogTrigger>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Building2 className="w-6 h-6" />
+            إدارة العقارات
+          </h2>
+          <p className="text-muted-foreground mt-1">إدارة جميع العقارات والإعلانات في النظام</p>
+        </div>
+        
+        <Dialog open={propertyDialogOpen} onOpenChange={setPropertyDialogOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={resetForm} className="gap-2">
+              <Plus className="w-4 h-4" />
+              إضافة عقار
+            </Button>
+          </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingProperty ? 'تحديث العقار' : 'إضافة عقار جديد'}</DialogTitle>
@@ -604,8 +580,24 @@ export default function PropertyManagement() {
               ))}
             </TableBody>
           </Table>
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+          
+          {filteredProperties.length === 0 && (
+            <div className="text-center py-8">
+              <Building2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-semibold text-lg mb-2">لا توجد عقارات</h3>
+              <p className="text-muted-foreground mb-4">
+                {searchTerm ? 'لم يتم العثور على عقارات تطابق البحث' : 'لا توجد عقارات في النظام'}
+              </p>
+              {!searchTerm && (
+                <Button onClick={() => setPropertyDialogOpen(true)}>
+                  إضافة عقار جديد
+                </Button>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
