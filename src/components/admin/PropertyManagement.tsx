@@ -328,258 +328,287 @@ export default function PropertyManagement() {
               إضافة عقار
             </Button>
           </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{editingProperty ? 'تحديث العقار' : 'إضافة عقار جديد'}</DialogTitle>
-              </DialogHeader>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="title">عنوان العقار *</Label>
-                  <Input
-                    id="title"
-                    value={propertyForm.title}
-                    onChange={(e) => setPropertyForm(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="شقة للبيع في..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="price">السعر *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={propertyForm.price}
-                    onChange={(e) => setPropertyForm(prev => ({ ...prev, price: e.target.value }))}
-                    placeholder="000000"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="property_type">نوع العقار</Label>
-                  <Select 
-                    value={propertyForm.property_type} 
-                    onValueChange={(value) => setPropertyForm(prev => ({ ...prev, property_type: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="اختر نوع العقار" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="شقة">شقة</SelectItem>
-                      <SelectItem value="فيلا">فيلا</SelectItem>
-                      <SelectItem value="بيت">بيت</SelectItem>
-                      <SelectItem value="أرض">أرض</SelectItem>
-                      <SelectItem value="مكتب">مكتب</SelectItem>
-                      <SelectItem value="محل">محل تجاري</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="listing_type">نوع العرض</Label>
-                  <Select 
-                    value={propertyForm.listing_type} 
-                    onValueChange={(value) => setPropertyForm(prev => ({ ...prev, listing_type: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="اختر نوع العرض" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="للبيع">للبيع</SelectItem>
-                      <SelectItem value="للإيجار">للإيجار</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="location">الموقع *</Label>
-                  <Input
-                    id="location"
-                    value={propertyForm.location}
-                    onChange={(e) => setPropertyForm(prev => ({ ...prev, location: e.target.value }))}
-                    placeholder="العنوان التفصيلي"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="city">المدينة</Label>
-                  <Input
-                    id="city"
-                    value={propertyForm.city}
-                    onChange={(e) => setPropertyForm(prev => ({ ...prev, city: e.target.value }))}
-                    placeholder="الرياض، جدة، الدمام..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="bedrooms">عدد غرف النوم</Label>
-                  <Input
-                    id="bedrooms"
-                    type="number"
-                    value={propertyForm.bedrooms}
-                    onChange={(e) => setPropertyForm(prev => ({ ...prev, bedrooms: e.target.value }))}
-                    placeholder="3"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="bathrooms">عدد دورات المياه</Label>
-                  <Input
-                    id="bathrooms"
-                    type="number"
-                    value={propertyForm.bathrooms}
-                    onChange={(e) => setPropertyForm(prev => ({ ...prev, bathrooms: e.target.value }))}
-                    placeholder="2"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="area">المساحة (متر مربع)</Label>
-                  <Input
-                    id="area"
-                    type="number"
-                    value={propertyForm.area_sqm}
-                    onChange={(e) => setPropertyForm(prev => ({ ...prev, area_sqm: e.target.value }))}
-                    placeholder="120"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="category">القسم</Label>
-                  <Select 
-                    value={propertyForm.category} 
-                    onValueChange={(value) => setPropertyForm(prev => ({ ...prev, category: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="اختر القسم" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.slug}>
-                          {category.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="md:col-span-2">
-                  <Label htmlFor="description">الوصف</Label>
-                  <Textarea
-                    id="description"
-                    value={propertyForm.description}
-                    onChange={(e) => setPropertyForm(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="وصف مفصل للعقار..."
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="agent_name">اسم الوكيل</Label>
-                  <Input
-                    id="agent_name"
-                    value={propertyForm.agent_name}
-                    onChange={(e) => setPropertyForm(prev => ({ ...prev, agent_name: e.target.value }))}
-                    placeholder="أحمد محمد"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="agent_phone">هاتف الوكيل</Label>
-                  <Input
-                    id="agent_phone"
-                    value={propertyForm.agent_phone}
-                    onChange={(e) => setPropertyForm(prev => ({ ...prev, agent_phone: e.target.value }))}
-                    placeholder="05xxxxxxxx"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <Button onClick={saveProperty} className="w-full">
-                    {editingProperty ? 'تحديث العقار' : 'إضافة العقار'}
-                  </Button>
-                </div>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingProperty ? 'تحديث العقار' : 'إضافة عقار جديد'}</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="title">عنوان العقار *</Label>
+                <Input
+                  id="title"
+                  value={propertyForm.title}
+                  onChange={(e) => setPropertyForm(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="شقة للبيع في..."
+                />
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+              <div>
+                <Label htmlFor="price">السعر *</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  value={propertyForm.price}
+                  onChange={(e) => setPropertyForm(prev => ({ ...prev, price: e.target.value }))}
+                  placeholder="000000"
+                />
+              </div>
+              <div>
+                <Label htmlFor="property_type">نوع العقار</Label>
+                <Select 
+                  value={propertyForm.property_type} 
+                  onValueChange={(value) => setPropertyForm(prev => ({ ...prev, property_type: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر نوع العقار" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="شقة">شقة</SelectItem>
+                    <SelectItem value="فيلا">فيلا</SelectItem>
+                    <SelectItem value="بيت">بيت</SelectItem>
+                    <SelectItem value="أرض">أرض</SelectItem>
+                    <SelectItem value="مكتب">مكتب</SelectItem>
+                    <SelectItem value="محل">محل تجاري</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="listing_type">نوع العرض</Label>
+                <Select 
+                  value={propertyForm.listing_type} 
+                  onValueChange={(value) => setPropertyForm(prev => ({ ...prev, listing_type: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر نوع العرض" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="للبيع">للبيع</SelectItem>
+                    <SelectItem value="للإيجار">للإيجار</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="location">الموقع *</Label>
+                <Input
+                  id="location"
+                  value={propertyForm.location}
+                  onChange={(e) => setPropertyForm(prev => ({ ...prev, location: e.target.value }))}
+                  placeholder="العنوان التفصيلي"
+                />
+              </div>
+              <div>
+                <Label htmlFor="city">المدينة</Label>
+                <Input
+                  id="city"
+                  value={propertyForm.city}
+                  onChange={(e) => setPropertyForm(prev => ({ ...prev, city: e.target.value }))}
+                  placeholder="الرياض، جدة، الدمام..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="bedrooms">عدد غرف النوم</Label>
+                <Input
+                  id="bedrooms"
+                  type="number"
+                  value={propertyForm.bedrooms}
+                  onChange={(e) => setPropertyForm(prev => ({ ...prev, bedrooms: e.target.value }))}
+                  placeholder="3"
+                />
+              </div>
+              <div>
+                <Label htmlFor="bathrooms">عدد دورات المياه</Label>
+                <Input
+                  id="bathrooms"
+                  type="number"
+                  value={propertyForm.bathrooms}
+                  onChange={(e) => setPropertyForm(prev => ({ ...prev, bathrooms: e.target.value }))}
+                  placeholder="2"
+                />
+              </div>
+              <div>
+                <Label htmlFor="area">المساحة (متر مربع)</Label>
+                <Input
+                  id="area"
+                  type="number"
+                  value={propertyForm.area_sqm}
+                  onChange={(e) => setPropertyForm(prev => ({ ...prev, area_sqm: e.target.value }))}
+                  placeholder="120"
+                />
+              </div>
+              <div>
+                <Label htmlFor="category">القسم</Label>
+                <Select 
+                  value={propertyForm.category} 
+                  onValueChange={(value) => setPropertyForm(prev => ({ ...prev, category: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="اختر القسم" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.slug}>
+                        {category.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-2">
+                <Label htmlFor="description">الوصف</Label>
+                <Textarea
+                  id="description"
+                  value={propertyForm.description}
+                  onChange={(e) => setPropertyForm(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="وصف مفصل للعقار..."
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label htmlFor="agent_name">اسم الوكيل</Label>
+                <Input
+                  id="agent_name"
+                  value={propertyForm.agent_name}
+                  onChange={(e) => setPropertyForm(prev => ({ ...prev, agent_name: e.target.value }))}
+                  placeholder="أحمد محمد"
+                />
+              </div>
+              <div>
+                <Label htmlFor="agent_phone">هاتف الوكيل</Label>
+                <Input
+                  id="agent_phone"
+                  value={propertyForm.agent_phone}
+                  onChange={(e) => setPropertyForm(prev => ({ ...prev, agent_phone: e.target.value }))}
+                  placeholder="05xxxxxxxx"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Button onClick={saveProperty} className="w-full">
+                  {editingProperty ? 'تحديث العقار' : 'إضافة العقار'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
 
-        <div className="rounded-md border overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>العنوان</TableHead>
-                <TableHead>السعر</TableHead>
-                <TableHead>النوع</TableHead>
-                <TableHead>الموقع</TableHead>
-                <TableHead>الحالة</TableHead>
-                <TableHead>تاريخ الإضافة</TableHead>
-                <TableHead>الإجراءات</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProperties.map((property) => (
-                <TableRow key={property.id}>
-                  <TableCell className="font-medium max-w-48 truncate">
-                    {property.title}
-                  </TableCell>
-                  <TableCell>
-                    {property.price.toLocaleString('ar-SA')} ريال
-                  </TableCell>
-                  <TableCell>{property.property_type}</TableCell>
-                  <TableCell className="max-w-32 truncate">{property.location}</TableCell>
-                  <TableCell>
-                    <Select 
-                      value={property.status} 
-                      onValueChange={(value) => updatePropertyStatus(property.id, value)}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue>
-                          <Badge variant={
-                            property.status === 'active' ? 'default' : 
-                            property.status === 'sold' ? 'destructive' : 
-                            property.status === 'rented' ? 'secondary' : 'outline'
-                          }>
-                            {property.status === 'active' && 'نشط'}
-                            {property.status === 'inactive' && 'غير نشط'}
-                            {property.status === 'sold' && 'مباع'}
-                            {property.status === 'rented' && 'مؤجر'}
-                          </Badge>
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">نشط</SelectItem>
-                        <SelectItem value="inactive">غير نشط</SelectItem>
-                        <SelectItem value="sold">مباع</SelectItem>
-                        <SelectItem value="rented">مؤجر</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(property.created_at).toLocaleDateString('ar-SA')}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => editProperty(property)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>حذف العقار</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              هل أنت متأكد من حذف هذا العقار؟ لا يمكن التراجع عن هذا الإجراء.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => deleteProperty(property.id)}>
-                              حذف
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
+      <Card>
+        <CardContent className="p-0">
+          <div className="space-y-4 p-4">
+            {/* Search and Filter */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="البحث في العقارات..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pr-10"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="فلترة حسب الحالة" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">جميع الحالات</SelectItem>
+                  <SelectItem value="active">نشط</SelectItem>
+                  <SelectItem value="inactive">غير نشط</SelectItem>
+                  <SelectItem value="sold">مباع</SelectItem>
+                  <SelectItem value="rented">مؤجر</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>العنوان</TableHead>
+                  <TableHead>السعر</TableHead>
+                  <TableHead>النوع</TableHead>
+                  <TableHead>الموقع</TableHead>
+                  <TableHead>الحالة</TableHead>
+                  <TableHead>تاريخ الإضافة</TableHead>
+                  <TableHead>الإجراءات</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredProperties.map((property) => (
+                  <TableRow key={property.id}>
+                    <TableCell className="font-medium max-w-48 truncate">
+                      {property.title}
+                    </TableCell>
+                    <TableCell>
+                      {property.price.toLocaleString('ar-SA')} ريال
+                    </TableCell>
+                    <TableCell>{property.property_type}</TableCell>
+                    <TableCell className="max-w-32 truncate">{property.location}</TableCell>
+                    <TableCell>
+                      <Select 
+                        value={property.status} 
+                        onValueChange={(value) => updatePropertyStatus(property.id, value)}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue>
+                            <Badge variant={
+                              property.status === 'active' ? 'default' : 
+                              property.status === 'sold' ? 'destructive' : 
+                              property.status === 'rented' ? 'secondary' : 'outline'
+                            }>
+                              {property.status === 'active' && 'نشط'}
+                              {property.status === 'inactive' && 'غير نشط'}
+                              {property.status === 'sold' && 'مباع'}
+                              {property.status === 'rented' && 'مؤجر'}
+                            </Badge>
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">نشط</SelectItem>
+                          <SelectItem value="inactive">غير نشط</SelectItem>
+                          <SelectItem value="sold">مباع</SelectItem>
+                          <SelectItem value="rented">مؤجر</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(property.created_at).toLocaleDateString('ar-SA')}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => editProperty(property)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>حذف العقار</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                هل أنت متأكد من حذف هذا العقار؟ لا يمكن التراجع عن هذا الإجراء.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteProperty(property.id)}>
+                                حذف
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
           
           {filteredProperties.length === 0 && (
