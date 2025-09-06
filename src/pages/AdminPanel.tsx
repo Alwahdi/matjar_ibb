@@ -25,13 +25,8 @@ export default function AdminPanel() {
   });
 
   useEffect(() => {
-    if (!user || !isAnyAdmin) {
-      navigate('/');
-      return;
-    }
-    
     fetchStats();
-  }, [user, isAnyAdmin, navigate]);
+  }, []);
 
   const fetchStats = async () => {
     try {
@@ -53,9 +48,7 @@ export default function AdminPanel() {
     }
   };
 
-  if (!user || !isAnyAdmin) {
-    return null;
-  }
+  // Admin access is handled by AdminGuard at the route level
 
   const tabs = [
     { id: 'dashboard', label: 'لوحة المعلومات', icon: BarChart3, show: true },
