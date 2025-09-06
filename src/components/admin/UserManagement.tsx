@@ -3,66 +3,71 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Users, UserX, UserCheck, Plus, Edit, Trash2, Search, Shield } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Users, Search, UserCheck, UserX, Loader2, MoreVertical, Eye, EyeOff } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import UserRoleDialog from '@/components/UserRoleDialog';
+import { UserRole } from '@/hooks/useRoles';
 
-interface Profile {
+interface UserProfile {
   id: string;
   user_id: string;
-  full_name: string;
-  phone: string;
-  user_type: string;
+  full_name: string | null;
+  phone: string | null;
   is_active: boolean;
-  suspended_at: string | null;
-  suspension_reason: string | null;
-  suspended_by: string | null;
   created_at: string;
-}
-
-interface UserRole {
-  id: string;
-  user_id: string;
-  role: string;
-  created_at: string;
+  user_roles: { role: UserRole }[];
 }
 
 export default function UserManagement() {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [userRoles, setUserRoles] = useState<UserRole[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
-  const [suspensionReason, setSuspensionReason] = useState('');
-  const [selectedRole, setSelectedRole] = useState<string>('');
-  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
 
   useEffect(() => {
-    fetchProfiles();
-    fetchUserRoles();
+    fetchUsers();
   }, []);
 
-  const fetchProfiles = async () => {
+  const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+      
+      // First get profiles
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, user_id, full_name, phone, is_active, created_at')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setProfiles(data || []);
+      if (profilesError) throw profilesError;
+
+      // Then get user roles
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      // Combine the data
+      const usersWithRoles = (profilesData || []).map(profile => ({
+        ...profile,
+        user_roles: (rolesData || [])
+          .filter(role => role.user_id === profile.user_id)
+          .map(role => ({ role: role.role as UserRole }))
+      }));
+
+      setUsers(usersWithRoles);
     } catch (error) {
-      console.error('Error fetching profiles:', error);
+      console.error('Error fetching users:', error);
       toast({
         title: "خطأ",
         description: "حدث خطأ في تحميل بيانات المستخدمين",
@@ -73,146 +78,40 @@ export default function UserManagement() {
     }
   };
 
-  const fetchUserRoles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('*');
-
-      if (error) throw error;
-      setUserRoles(data as UserRole[] || []);
-    } catch (error) {
-      console.error('Error fetching user roles:', error);
-    }
-  };
-
-  const suspendUser = async (userId: string, reason: string) => {
+  const toggleUserStatus = async (userId: string, isActive: boolean) => {
     try {
       const { error } = await supabase
         .from('profiles')
         .update({
-          is_active: false,
-          suspended_at: new Date().toISOString(),
-          suspension_reason: reason,
-          suspended_by: user?.id
+          is_active: !isActive,
+          suspended_at: !isActive ? null : new Date().toISOString(),
+          suspended_by: !isActive ? null : user?.id
         })
         .eq('user_id', userId);
 
       if (error) throw error;
 
       toast({
-        title: "تم تعليق المستخدم",
-        description: "تم تعليق المستخدم بنجاح"
+        title: "✅ تم التحديث",
+        description: isActive ? "تم تعليق المستخدم بنجاح" : "تم تفعيل المستخدم بنجاح",
+        className: "bg-green-50 border-green-200 text-green-800"
       });
 
-      fetchProfiles();
-    } catch (error) {
-      console.error('Error suspending user:', error);
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error updating user status:', error);
       toast({
         title: "خطأ",
-        description: "حدث خطأ في تعليق المستخدم",
+        description: "حدث خطأ في تحديث حالة المستخدم",
         variant: "destructive"
       });
     }
   };
 
-  const activateUser = async (userId: string) => {
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          is_active: true,
-          suspended_at: null,
-          suspension_reason: null,
-          suspended_by: null
-        })
-        .eq('user_id', userId);
-
-      if (error) throw error;
-
-      toast({
-        title: "تم تفعيل المستخدم",
-        description: "تم تفعيل المستخدم بنجاح"
-      });
-
-      fetchProfiles();
-    } catch (error) {
-      console.error('Error activating user:', error);
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ في تفعيل المستخدم",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const assignRole = async (userId: string, role: string) => {
-    try {
-      // Check if role already exists
-      const existingRole = userRoles.find(ur => ur.user_id === userId && ur.role === role);
-      if (existingRole) {
-        toast({
-          title: "تحذير",
-          description: "هذا الدور مُعيّن بالفعل للمستخدم",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const { error } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: userId,
-          role: role as any
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "تم تعيين الدور",
-        description: "تم تعيين الدور بنجاح"
-      });
-
-      fetchUserRoles();
-      setRoleDialogOpen(false);
-      setSelectedRole('');
-    } catch (error) {
-      console.error('Error assigning role:', error);
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ في تعيين الدور",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const removeRole = async (roleId: string) => {
-    try {
-      const { error } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('id', roleId);
-
-      if (error) throw error;
-
-      toast({
-        title: "تم حذف الدور",
-        description: "تم حذف الدور بنجاح"
-      });
-
-      fetchUserRoles();
-    } catch (error) {
-      console.error('Error removing role:', error);
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ في حذف الدور",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const getUserRoles = (userId: string) => {
-    return userRoles.filter(role => role.user_id === userId);
+  const getUserEmail = (userId: string) => {
+    // This would ideally come from a join with auth.users or be stored in profiles
+    // For now, we'll use a placeholder since we can't directly query auth.users
+    return 'user@example.com'; // This should be replaced with actual email lookup
   };
 
   const getRoleLabel = (role: string) => {
@@ -227,16 +126,16 @@ export default function UserManagement() {
     return roleLabels[role] || role;
   };
 
-  const filteredProfiles = profiles.filter(profile =>
-    profile.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profile.phone?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = users.filter(user =>
+    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.phone?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border-0 bg-gradient-to-br from-background to-muted/30">
         <CardContent className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </CardContent>
       </Card>
     );
@@ -244,184 +143,110 @@ export default function UserManagement() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="border-0 bg-gradient-to-br from-background to-muted/30">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            إدارة المستخدمين
+          <CardTitle className="flex items-center gap-3 text-xl">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center">
+              <Users className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <div>
+              <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                إدارة المستخدمين
+              </span>
+              <CardDescription className="mt-1">إدارة المستخدمين وتعيين الأدوار وحالة التفعيل</CardDescription>
+            </div>
           </CardTitle>
-          <CardDescription>
-            إدارة المستخدمين وتعيين الأدوار وحالة التفعيل
-          </CardDescription>
         </CardHeader>
-      <CardContent>
-        <div className="flex items-center gap-4 mb-6">
-          <div className="relative flex-1">
+        <CardContent className="space-y-6">
+          {/* Search */}
+          <div className="relative">
             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
-              placeholder="البحث في المستخدمين..."
+              placeholder="البحث في المستخدمين بالاسم أو رقم الهاتف..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-10"
+              className="pr-10 bg-background/50 border-border/50"
             />
           </div>
-        </div>
 
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>الاسم</TableHead>
-                <TableHead>رقم الهاتف</TableHead>
-                <TableHead>نوع المستخدم</TableHead>
-                <TableHead>الأدوار</TableHead>
-                <TableHead>الحالة</TableHead>
-                <TableHead>تاريخ الإنشاء</TableHead>
-                <TableHead>الإجراءات</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProfiles.map((profile) => {
-                const roles = getUserRoles(profile.user_id);
-                return (
-                  <TableRow key={profile.id}>
-                    <TableCell className="font-medium">{profile.full_name}</TableCell>
-                    <TableCell>{profile.phone || 'غير محدد'}</TableCell>
-                    <TableCell>{profile.user_type}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {roles.map((role) => (
-                          <Badge
-                            key={role.id}
-                            variant="secondary"
-                            className="text-xs cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
-                            onClick={() => removeRole(role.id)}
-                            title="اضغط لحذف الدور"
-                          >
-                            {getRoleLabel(role.role)}
-                          </Badge>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={profile.is_active ? "default" : "destructive"}>
-                        {profile.is_active ? "نشط" : "معلق"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(profile.created_at).toLocaleDateString('ar-SA')}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {profile.is_active ? (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => setSelectedUser(profile)}
-                              >
-                                <UserX className="w-4 h-4" />
-                                تعليق
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>تعليق المستخدم</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  هل أنت متأكد من تعليق هذا المستخدم؟ لن يتمكن من الوصول للتطبيق.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <div className="space-y-4 my-4">
-                                <Label htmlFor="reason">سبب التعليق</Label>
-                                <Textarea
-                                  id="reason"
-                                  placeholder="اكتب سبب تعليق المستخدم..."
-                                  value={suspensionReason}
-                                  onChange={(e) => setSuspensionReason(e.target.value)}
-                                />
-                              </div>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>إلغاء</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => {
-                                    if (selectedUser && suspensionReason.trim()) {
-                                      suspendUser(selectedUser.user_id, suspensionReason);
-                                      setSuspensionReason('');
-                                      setSelectedUser(null);
-                                    }
-                                  }}
-                                >
-                                  تعليق
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        ) : (
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => activateUser(profile.user_id)}
-                          >
-                            <UserCheck className="w-4 h-4" />
-                            تفعيل
-                          </Button>
-                        )}
-
-                        <Dialog open={roleDialogOpen && selectedUser?.id === profile.id} onOpenChange={setRoleDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedUser(profile);
-                                setRoleDialogOpen(true);
-                              }}
-                            >
-                              <Shield className="w-4 h-4" />
-                              تعيين دور
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>تعيين دور للمستخدم: {profile.full_name}</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <Label htmlFor="role-select">اختر الدور</Label>
-                              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="اختر دور..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="admin">مدير عام</SelectItem>
-                                  <SelectItem value="properties_admin">مدير العقارات</SelectItem>
-                                  <SelectItem value="categories_admin">مدير الأقسام</SelectItem>
-                                  <SelectItem value="notifications_admin">مدير الإشعارات</SelectItem>
-                                  <SelectItem value="moderator">مشرف</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <Button
-                                onClick={() => {
-                                  if (selectedRole && selectedUser) {
-                                    assignRole(selectedUser.user_id, selectedRole);
-                                  }
-                                }}
-                                disabled={!selectedRole}
-                                className="w-full"
-                              >
-                                تعيين الدور
-                              </Button>
+          {/* Users List */}
+          <div className="space-y-3">
+            {filteredUsers.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>لا توجد مستخدمين</p>
+              </div>
+            ) : (
+              filteredUsers.map((user) => (
+                <Card key={user.id} className="bg-background/50 border-border/50 hover:bg-background/80 transition-all duration-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                          <Users className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{user.full_name || 'غير محدد'}</p>
+                          <p className="text-xs text-muted-foreground">{getUserEmail(user.user_id)}</p>
+                          {user.user_roles && user.user_roles.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {user.user_roles.map((roleObj, idx) => (
+                                <Badge key={idx} variant="secondary" className="text-xs">
+                                  {getRoleLabel(roleObj.role)}
+                                </Badge>
+                              ))}
                             </div>
-                          </DialogContent>
-                        </Dialog>
+                          )}
+                        </div>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
+                      
+                      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                        <Badge 
+                          variant={user.is_active ? "default" : "destructive"} 
+                          className={`text-xs ${user.is_active ? 'bg-green-500/10 text-green-600 border-green-500/20' : ''}`}
+                        >
+                          {user.is_active ? "نشط" : "معلق"}
+                        </Badge>
+                        
+                        <UserRoleDialog
+                          userId={user.user_id}
+                          userEmail={getUserEmail(user.user_id)}
+                          currentRoles={user.user_roles?.map(r => r.role as UserRole) || []}
+                          onRolesUpdated={fetchUsers}
+                        />
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => toggleUserStatus(user.user_id, user.is_active)}
+                              className="gap-2"
+                            >
+                              {user.is_active ? (
+                                <>
+                                  <EyeOff className="w-4 h-4" />
+                                  تعليق المستخدم
+                                </>
+                              ) : (
+                                <>
+                                  <Eye className="w-4 h-4" />
+                                  تفعيل المستخدم
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

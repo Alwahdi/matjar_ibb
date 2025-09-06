@@ -18,6 +18,7 @@ export function useRoles() {
       }
 
       try {
+        setLoading(true);
         const { data, error } = await supabase
           .from('user_roles')
           .select('role')
@@ -26,11 +27,12 @@ export function useRoles() {
         if (!error && data) {
           setRoles(data.map(r => r.role as UserRole));
         } else {
-          setRoles([]);
+          // Check if user has default user role
+          setRoles(['user']);
         }
       } catch (error) {
         console.error('Roles fetch error:', error);
-        setRoles([]);
+        setRoles(['user']);
       } finally {
         setLoading(false);
       }
@@ -45,7 +47,8 @@ export function useRoles() {
   const isPropertiesAdmin = hasRole('properties_admin') || isAdmin;
   const isCategoriesAdmin = hasRole('categories_admin') || isAdmin;
   const isNotificationsAdmin = hasRole('notifications_admin') || isAdmin;
-  const isAnyAdmin = isAdmin || isPropertiesAdmin || isCategoriesAdmin || isNotificationsAdmin;
+  const isModerator = hasRole('moderator');
+  const isAnyAdmin = isAdmin || isPropertiesAdmin || isCategoriesAdmin || isNotificationsAdmin || isModerator;
 
   return { 
     roles, 
@@ -55,6 +58,7 @@ export function useRoles() {
     isPropertiesAdmin, 
     isCategoriesAdmin, 
     isNotificationsAdmin,
+    isModerator,
     isAnyAdmin
   };
 }

@@ -78,10 +78,14 @@ const HeaderMobile = ({ isDark, toggleTheme, showSearch = true }: HeaderMobilePr
                   <User className="w-4 h-4 ml-2" />
                   إعدادات الحساب
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/favorites')} className="font-arabic">
+                  <Bell className="w-4 h-4 ml-2" />
+                  المفضلة
+                </DropdownMenuItem>
                 {isAnyAdmin && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/admin')} className="font-arabic text-primary">
+                    <DropdownMenuItem onClick={() => navigate('/admin')} className="font-arabic text-primary font-medium">
                       <Shield className="w-4 h-4 ml-2" />
                       لوحة الإدارة
                     </DropdownMenuItem>

@@ -12,6 +12,8 @@ const AdminGuard = ({ children, requiredRole }: AdminGuardProps) => {
   const { loading, isAdmin, isPropertiesAdmin, isCategoriesAdmin, isNotificationsAdmin, isAnyAdmin } = useRoles();
   const navigate = useNavigate();
 
+  console.log('AdminGuard - Loading:', loading, 'isAnyAdmin:', isAnyAdmin, 'requiredRole:', requiredRole);
+
   useEffect(() => {
     if (loading) return;
 
@@ -39,7 +41,10 @@ const AdminGuard = ({ children, requiredRole }: AdminGuardProps) => {
       }
     }
 
+    console.log('AdminGuard - Access check result:', hasAccess);
+
     if (!hasAccess) {
+      console.log('AdminGuard - Redirecting to home due to insufficient permissions');
       navigate('/');
     }
   }, [loading, isAdmin, isPropertiesAdmin, isCategoriesAdmin, isNotificationsAdmin, isAnyAdmin, requiredRole, navigate]);
