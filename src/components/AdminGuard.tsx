@@ -28,24 +28,24 @@ const AdminGuard = ({ children, requiredRole }: AdminGuardProps) => {
           hasAccess = isAdmin;
           break;
         case 'properties_admin':
-          hasAccess = isPropertiesAdmin;
+          hasAccess = isPropertiesAdmin || isAdmin;
           break;
         case 'categories_admin':
-          hasAccess = isCategoriesAdmin;
+          hasAccess = isCategoriesAdmin || isAdmin;
           break;
         case 'notifications_admin':
-          hasAccess = isNotificationsAdmin;
+          hasAccess = isNotificationsAdmin || isAdmin;
           break;
         default:
           hasAccess = false;
       }
     }
 
-    console.log('AdminGuard - Access check result:', hasAccess);
+    console.log('AdminGuard - Access check result:', hasAccess, 'Role required:', requiredRole);
 
     if (!hasAccess) {
       console.log('AdminGuard - Redirecting to home due to insufficient permissions');
-      navigate('/');
+      navigate('/', { replace: true });
     }
   }, [loading, isAdmin, isPropertiesAdmin, isCategoriesAdmin, isNotificationsAdmin, isAnyAdmin, requiredRole, navigate]);
 

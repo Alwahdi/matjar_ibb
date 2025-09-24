@@ -39,28 +39,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, fullName?: string, phone?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: { 
-          full_name: fullName || '',
-          phone: phone || ''
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: { 
+            full_name: fullName || '',
+            phone: phone || ''
+          }
         }
-      }
-    });
-    return { error };
+      });
+      return { error };
+    } catch (error: any) {
+      console.error('Sign up error:', error);
+      return { error: { message: 'فشل في إنشاء الحساب. يرجى التحقق من الاتصال والمحاولة مرة أخرى.' } as any };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      return { error };
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      return { error: { message: 'فشل في الاتصال بالخادم. يرجى التحقق من الاتصال والمحاولة مرة أخرى.' } as any };
+    }
   };
 
   const signOut = async () => {
