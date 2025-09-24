@@ -24,10 +24,15 @@ export function useRoles() {
           .select('role')
           .eq('user_id', user.id);
 
+        console.log('Roles fetch result:', { data, error, userId: user.id });
+
         if (!error && data) {
-          setRoles(data.map(r => r.role as UserRole));
+          const userRoles = data.map(r => r.role as UserRole);
+          console.log('User roles:', userRoles);
+          setRoles(userRoles);
         } else {
           // Check if user has default user role
+          console.log('No roles found, setting default user role');
           setRoles(['user']);
         }
       } catch (error) {
@@ -49,6 +54,16 @@ export function useRoles() {
   const isNotificationsAdmin = hasRole('notifications_admin') || isAdmin;
   const isModerator = hasRole('moderator');
   const isAnyAdmin = isAdmin || isPropertiesAdmin || isCategoriesAdmin || isNotificationsAdmin || isModerator;
+
+  console.log('Role calculations:', {
+    roles,
+    isAdmin,
+    isPropertiesAdmin,
+    isCategoriesAdmin,
+    isNotificationsAdmin,
+    isModerator,
+    isAnyAdmin
+  });
 
   return { 
     roles, 

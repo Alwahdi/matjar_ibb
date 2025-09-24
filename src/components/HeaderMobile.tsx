@@ -20,7 +20,9 @@ const HeaderMobile = ({ isDark, toggleTheme, showSearch = true }: HeaderMobilePr
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { isAnyAdmin } = useRoles();
+  const { isAnyAdmin, loading: rolesLoading } = useRoles();
+
+  console.log('HeaderMobile - isAnyAdmin:', isAnyAdmin, 'rolesLoading:', rolesLoading, 'user:', user?.id);
 
   const handleSignOut = async () => {
     await signOut();

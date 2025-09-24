@@ -10,6 +10,8 @@ import AdminNotifications from '@/components/admin/AdminNotifications';
 import UserManagement from '@/components/admin/UserManagement';
 import SectionManagement from '@/components/admin/SectionManagement';
 import PropertyManagement from '@/components/admin/PropertyManagement';
+import RoleDebugger from '@/components/RoleDebugger';
+import DatabaseRoleChecker from '@/components/DatabaseRoleChecker';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function AdminPanel() {
@@ -400,6 +402,8 @@ export default function AdminPanel() {
         {/* Main Content */}
         <div className="flex-1 min-h-screen">
           <main className="p-4 lg:p-8 max-w-7xl mx-auto">
+            <RoleDebugger />
+            <DatabaseRoleChecker />
             <div className="animate-fade-in">
               {renderTabContent()}
             </div>
