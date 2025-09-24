@@ -12,7 +12,7 @@ interface UserRoleDialogProps {
   userId: string;
   userEmail: string;
   currentRoles: UserRole[];
-  onRolesUpdated: () => void;
+  onRolesUpdated: (updatedRoles: UserRole[]) => void;
 }
 
 const AVAILABLE_ROLES: { value: UserRole; label: string; description: string }[] = [
@@ -67,7 +67,7 @@ export default function UserRoleDialog({ userId, userEmail, currentRoles, onRole
         className: "bg-green-50 border-green-200 text-green-800"
       });
 
-      onRolesUpdated();
+      onRolesUpdated(selectedRoles);
       setOpen(false);
     } catch (error: any) {
       console.error('Error updating roles:', error);

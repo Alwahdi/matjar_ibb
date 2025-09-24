@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import UserRoleDialog from '@/components/UserRoleDialog';
 import { UserRole } from '@/hooks/useRoles';
+import { useNotificationSender } from '@/hooks/useNotificationSender';
 
 interface UserProfile {
   id: string;
@@ -29,6 +30,7 @@ interface UserProfile {
 export default function UserManagement() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { sendToUsers } = useNotificationSender();
   
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -212,7 +214,18 @@ export default function UserManagement() {
                           userId={user.user_id}
                           userEmail={getUserEmail(user.user_id)}
                           currentRoles={user.user_roles?.map(r => r.role as UserRole) || []}
-                          onRolesUpdated={fetchUsers}
+                          onRolesUpdated={async (updatedRoles) => {
+                            await fetchUsers();
+                            
+                            // Send notification to user about role assignment
+                            const roleLabels = updatedRoles.map(getRoleLabel).join(', ');
+                            await sendToUsers(
+                              [user.user_id],
+                              'تم تعيين دور جديد',
+                              `تم تعيينك في الأدوار التالية: ${roleLabels}. يمكنك الآن الوصول إلى لوحة الإدارة وإدارة المحتوى المخصص لك.`,
+                              'success'
+                            );
+                          }}
                         />
                         
                         <DropdownMenu>

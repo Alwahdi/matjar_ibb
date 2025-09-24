@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import PhoneCollectionDialog from '@/components/PhoneCollectionDialog';
 
 interface AuthContextType {
   user: User | null;
@@ -17,14 +18,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showPhoneDialog, setShowPhoneDialog] = useState(false);
 
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Check if user signed in with Google and needs phone number
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Check if user has a profile with phone number
+          setTimeout(async () => {
+            try {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('phone')
+                .eq('user_id', session.user.id)
+                .single();
+
+              // If user signed in with Google and doesn't have phone, show dialog
+              if (session.user.app_metadata?.provider === 'google' && (!profile?.phone || profile.phone === '')) {
+                setShowPhoneDialog(true);
+              }
+            } catch (error) {
+              console.error('Error checking profile:', error);
+            }
+          }, 100);
+        }
       }
     );
 
@@ -87,6 +110,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signOut
     }}>
       {children}
+      {user && showPhoneDialog && (
+        <PhoneCollectionDialog
+          isOpen={showPhoneDialog}
+          onClose={() => setShowPhoneDialog(false)}
+          userId={user.id}
+          userEmail={user.email || ''}
+        />
+      )}
     </AuthContext.Provider>
   );
 }

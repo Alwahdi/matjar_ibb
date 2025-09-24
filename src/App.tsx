@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import Landing from "./pages/Landing";
 import Privacy from "./pages/Privacy";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import Properties from "./pages/Properties";
 import ProductDetail from "./pages/ProductDetail";
 import AccountSettings from "./pages/AccountSettings";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/landing" element={<Landing />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/dashboard" element={<Navigate to="/" replace />} />
             
             {/* Protected routes */}
